@@ -107,7 +107,7 @@ const SecureDocumentScreen = () => {
 
     setDownloading(true);
     try {
-      const backendBaseUrl = process.env.EXPO_PUBLIC_BACKEND_URL ?? 'https://securesign-backend-j1bk.onrender.com';
+      const backendBaseUrl = process.env.EXPO_PUBLIC_BACKEND_URL ?? 'https://app1f3f-production.up.railway.app';
       const fullUrl = documentUrl.startsWith('http')
         ? documentUrl
         : `${backendBaseUrl}${documentUrl}`;
