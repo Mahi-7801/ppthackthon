@@ -31,6 +31,12 @@
     "plugins": [
       "expo-sharing",
       "./plugins/withDSCSigning"
-    ]
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/0ce87200-43b1-446c-af6c-9e87d801ba25"
+    }
   }
 }
