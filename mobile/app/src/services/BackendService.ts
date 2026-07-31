@@ -172,7 +172,7 @@ class BackendService {
   // ── Upload Document ──
   static async uploadDocument(
     fileName: string,
-    _fileBase64: string,
+    fileBase64: string,
     documentHash: string
   ): Promise<{ id: string; storagePath: string }> {
     const userId = BackendService.getCurrentUserId() || 'anonymous';
@@ -187,6 +187,7 @@ class BackendService {
           document_name: fileName,
           document_hash: documentHash,
           storage_path: storagePath,
+          file_data: fileBase64,
         }),
       });
       const data = await parseJsonSafe(res);

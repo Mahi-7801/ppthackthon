@@ -252,7 +252,7 @@ app.post('/api/login', rateLimit(60000, 15), async (req, res) => {
 
 // ── Documents: Upload ──
 app.post('/api/documents', requireAuth, async (req, res) => {
-  const { user_id, document_name, document_hash, storage_path } = req.body;
+  const { user_id, document_name, document_hash, storage_path, file_data } = req.body;
   if (!user_id || !document_name || !document_hash) {
     return res.status(400).json({ error: 'user_id, document_name, document_hash required' });
   }
@@ -261,6 +261,19 @@ app.post('/api/documents', requireAuth, async (req, res) => {
   }
 
   try {
+    // If PDF base64 file data provided, upload binary PDF to Supabase Storage bucket
+    if (file_data && storage_path) {
+      try {
+        const fileBuffer = Buffer.from(file_data, 'base64');
+        await supabase.storage.from('documents').upload(storage_path, fileBuffer, {
+          contentType: 'application/pdf',
+          upsert: true,
+        });
+      } catch (storageErr) {
+        console.warn('[Documents] Storage upload warning:', storageErr.message);
+      }
+    }
+
     const { data, error } = await supabase
       .from('documents')
       .insert({ user_id, document_name, document_hash, storage_path })
