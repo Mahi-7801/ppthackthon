@@ -10,10 +10,19 @@ const app = express();
 
 // ── Gmail SMTP Transporter Configuration ──
 const mailTransporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.SMTP_USER || 'pmahi7801@gmail.com',
     pass: process.env.SMTP_PASS || 'temwiqpfsrxxehob',
+  },
+  family: 4, // Force IPv4 to prevent Railway container IPv6 ENETUNREACH
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
