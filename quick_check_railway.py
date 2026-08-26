@@ -78,7 +78,8 @@ print(f"7. POST /api/submit-timestamp: Status {code} in {dt:.2f}s -> timestamp: 
 
 # 8. Assemble
 code, res, dt = req("POST", "/api/assemble-signature", headers=auth_h, body_dict={"documentId": doc_id, "signature": "MOCK_SIG", "timestamp": "2026-08-26T10:00:00Z"})
-print(f"8. POST /api/assemble-signature: Status {code} in {dt:.2f}s -> {res.get('signedDocumentUrl') if isinstance(res, dict) else res}", flush=True)
+signed_doc_url = res.get("signedDocumentUrl") if isinstance(res, dict) else None
+print(f"8. POST /api/assemble-signature: Status {code} in {dt:.2f}s -> {signed_doc_url}", flush=True)
 
 # 9. Verify Signature
 code, res, dt = req("POST", "/api/verify-signature", headers=auth_h, body_dict={"documentId": doc_id, "signature": "MOCK_SIG"})
@@ -89,8 +90,12 @@ code, res, dt = req("POST", "/api/audit-logs", headers=auth_h, body_dict={"user_
 print(f"10. POST /api/audit-logs: Status {code} in {dt:.2f}s -> {res.get('id') if isinstance(res, dict) else res}", flush=True)
 
 # 11. Download Signed PDF
-code, res, dt = req("GET", f"/signed-documents/{doc_id}-signed.pdf", headers=auth_h)
+signed_path = f"/signed-documents/{doc_id}-signed.pdf"
+if signed_doc_url:
+    signed_path = "/" + signed_doc_url.split(".app/")[1] if ".app/" in signed_doc_url else f"/signed-documents/{doc_id}-signed.pdf"
+
+code, res, dt = req("GET", signed_path, headers=auth_h)
 is_pdf = isinstance(res, str) and res.startswith("%PDF")
-print(f"11. GET /signed-documents/{doc_id}-signed.pdf: Status {code} in {dt:.2f}s -> Valid PDF Stream: {is_pdf}", flush=True)
+print(f"11. GET {signed_path}: Status {code} in {dt:.2f}s -> Valid PDF Stream: {is_pdf}", flush=True)
 
 print("\n=== ALL RAILWAY ENDPOINTS VERIFIED OPERATIONAL ===", flush=True)

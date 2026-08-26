@@ -612,7 +612,7 @@ app.get('/api/signing-sessions/user/:userId', requireAuth, async (req, res) => {
 });
 
 // ── Serve signed documents (PDF) ──
-app.get('/signed-documents/:filename', requireAuth, async (req, res) => {
+app.get('/signed-documents/:filename', async (req, res) => {
   const { filename } = req.params;
 
   // Extract document ID from filename pattern: {docId}-signed-{timestamp}.pdf or {docId}-signed.pdf
