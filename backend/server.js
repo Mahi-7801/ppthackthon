@@ -623,20 +623,24 @@ app.get('/signed-documents/:filename', async (req, res) => {
 
   const documentId = match[1];
 
-  // Fetch document and signing session from DB
-  const { data: doc } = await supabase
-    .from('documents')
-    .select('*')
-    .eq('id', documentId)
-    .single();
+  // Fetch document and signing session from DB with fast timeout
+  let doc = null;
+  let session = null;
+  try {
+    const fetchWithTimeout = (p, ms = 1200) =>
+      Promise.race([p, new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))]);
 
-  const { data: session } = await supabase
-    .from('signing_sessions')
-    .select('*')
-    .eq('document_id', documentId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+    const docRes = await fetchWithTimeout(supabase.from('documents').select('*').eq('id', documentId).single());
+    doc = docRes?.data;
+  } catch (e) {}
+
+  try {
+    const fetchWithTimeout = (p, ms = 1200) =>
+      Promise.race([p, new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))]);
+
+    const sessRes = await fetchWithTimeout(supabase.from('signing_sessions').select('*').eq('document_id', documentId).order('created_at', { ascending: false }).limit(1).single());
+    session = sessRes?.data;
+  } catch (e) {}
 
   const docName = doc?.document_name || 'Unknown Document';
   const signDate = session?.completed_at || new Date().toISOString();
