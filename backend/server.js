@@ -8,8 +8,8 @@ require('dotenv').config();
 
 const app = express();
 
-// ── Gmail SMTP Transporter Configuration ──
-const mailTransporter = nodemailer.createTransport({
+// ── Gmail SMTP Transporter Configuration with Port Failover ──
+const transporter587 = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 587,
   secure: false,
@@ -17,28 +17,51 @@ const mailTransporter = nodemailer.createTransport({
     user: process.env.SMTP_USER || 'pmahi7801@gmail.com',
     pass: process.env.SMTP_PASS || 'temwiqpfsrxxehob',
   },
-  family: 4, // Force IPv4 to prevent Railway container IPv6 ENETUNREACH
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-  tls: {
-    rejectUnauthorized: false,
+  family: 4,
+  connectionTimeout: 8000,
+  greetingTimeout: 8000,
+  socketTimeout: 8000,
+  tls: { rejectUnauthorized: false },
+});
+
+const transporter465 = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SMTP_USER || 'pmahi7801@gmail.com',
+    pass: process.env.SMTP_PASS || 'temwiqpfsrxxehob',
   },
+  family: 4,
+  connectionTimeout: 8000,
+  greetingTimeout: 8000,
+  socketTimeout: 8000,
+  tls: { rejectUnauthorized: false },
 });
 
 async function sendMailNotification({ to, subject, htmlText }) {
+  const mailOptions = {
+    from: `"SecureSign AP Government" <${process.env.SMTP_USER || 'pmahi7801@gmail.com'}>`,
+    to,
+    subject,
+    html: htmlText,
+  };
+
+  // Try port 587 first
   try {
-    const info = await mailTransporter.sendMail({
-      from: `"SecureSign AP Government" <${process.env.SMTP_USER || 'pmahi7801@gmail.com'}>`,
-      to,
-      subject,
-      html: htmlText,
-    });
-    console.log(`[SMTP] Email dispatched to ${to}: ${info.messageId}`);
+    const info = await transporter587.sendMail(mailOptions);
+    console.log(`[SMTP:587] Email dispatched to ${to}: ${info.messageId}`);
     return true;
-  } catch (err) {
-    console.warn(`[SMTP] Failed to send email to ${to}:`, err.message);
-    return false;
+  } catch (err587) {
+    console.warn(`[SMTP:587] Port 587 notice (${err587.message}), attempting Port 465 SSL failover...`);
+    try {
+      const info = await transporter465.sendMail(mailOptions);
+      console.log(`[SMTP:465] Email dispatched via SSL to ${to}: ${info.messageId}`);
+      return true;
+    } catch (err465) {
+      console.error(`[SMTP:465] Port 465 notice (${err465.message}).`);
+      return false;
+    }
   }
 }
 
