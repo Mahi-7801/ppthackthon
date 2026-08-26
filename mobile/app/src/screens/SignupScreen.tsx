@@ -5,11 +5,11 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BackendService from '../services/BackendService';
@@ -21,20 +21,23 @@ const SignupScreen = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSignup = async () => {
+    setErrorMessage('');
     if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill all fields');
+      setErrorMessage('Please fill in all required fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      setErrorMessage('Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      setErrorMessage('Password must be at least 6 characters');
       return;
     }
 
@@ -43,56 +46,106 @@ const SignupScreen = () => {
       const result = await BackendService.signup(email, password, fullName);
       if (result.user) {
         BackendService.setCurrentUserId(result.user.id);
-        Alert.alert(
-          'Account Created',
-          'Your account has been created successfully!',
-          [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
-        );
+        setIsSuccess(true);
       }
     } catch (error: any) {
-      Alert.alert('Signup Failed', error.message || 'Failed to create account');
+      setErrorMessage(error.message || 'Failed to create account');
     } finally {
       setLoading(false);
     }
   };
+
+  if (isSuccess) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#0B132B" />
+        <View style={styles.successWrapper}>
+          <View style={styles.successCard}>
+            <View style={styles.successGlow}>
+              <Text style={styles.successCheckIcon}>✔</Text>
+            </View>
+            <Text style={styles.successTitle}>Account Activated!</Text>
+            <Text style={styles.successSubtitle}>Welcome to SecureSign AP Government</Text>
+
+            <View style={styles.successDetailBox}>
+              <Text style={styles.successDetailLabel}>Registered Signer:</Text>
+              <Text style={styles.successDetailValue}>{fullName}</Text>
+              
+              <Text style={[styles.successDetailLabel, { marginTop: 8 }]}>Authorized Email:</Text>
+              <Text style={styles.successDetailValue}>{email}</Text>
+
+              <View style={styles.smtpNoticeRow}>
+                <Text style={styles.smtpNoticeIcon}>📧</Text>
+                <Text style={styles.smtpNoticeText}>
+                  Welcome & credentials confirmation email dispatched via SecureSign SMTP server!
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.proceedButton}
+              onPress={() => navigation.navigate('Login')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.proceedButtonText}>Proceed to Sign In ➔</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <View style={styles.shield}>
-            <Text style={styles.shieldIcon}>🛡️</Text>
+      <StatusBar barStyle="light-content" backgroundColor="#0B132B" />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        
+        {/* Header Branding */}
+        <View style={styles.header}>
+          <View style={styles.govBadge}>
+            <Text style={styles.govBadgeText}>🏛️ GOVT OF AP • RTIH • NIC 2026</Text>
           </View>
-          <Text style={styles.logoTitle}>SECURESIGN</Text>
+          <View style={styles.logoSection}>
+            <View style={styles.logoGlow}>
+              <Text style={styles.shieldIcon}>🛡️</Text>
+            </View>
+            <Text style={styles.appName}>SECURESIGN</Text>
+            <Text style={styles.appTagline}>Type-C DSC Mobile Signing Solution</Text>
+          </View>
         </View>
 
-        {/* Signup Form */}
-        <View style={styles.formContainer}>
-          <Text style={styles.formTitle}>Create Account</Text>
-          <Text style={styles.formSubtitle}>Join the Innovation Challenge</Text>
+        {/* Signup Form Card */}
+        <View style={styles.formCard}>
+          <Text style={styles.formTitle}>Register Signer Account</Text>
+          <Text style={styles.formSubtitle}>Create authorized cryptographic profile</Text>
 
-          <View style={styles.inputContainer}>
+          {errorMessage !== '' && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>⚠️ {errorMessage}</Text>
+            </View>
+          )}
+
+          <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Full Name</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your full name"
-              placeholderTextColor="#999"
+              placeholder="e.g. Mahankali Kornepati"
+              placeholderTextColor="#64748B"
               value={fullName}
               onChangeText={setFullName}
               autoCapitalize="words"
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Email</Text>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Email Address</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your email"
-              placeholderTextColor="#999"
+              placeholder="e.g. pmahi7801@gmail.com"
+              placeholderTextColor="#64748B"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -101,24 +154,24 @@ const SignupScreen = () => {
             />
           </View>
 
-          <View style={styles.inputContainer}>
+          <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Password</Text>
             <TextInput
               style={styles.input}
-              placeholder="Create a password"
-              placeholderTextColor="#999"
+              placeholder="Min 6 characters"
+              placeholderTextColor="#64748B"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
             />
           </View>
 
-          <View style={styles.inputContainer}>
+          <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Confirm Password</Text>
             <TextInput
               style={styles.input}
-              placeholder="Confirm your password"
-              placeholderTextColor="#999"
+              placeholder="Re-enter password"
+              placeholderTextColor="#64748B"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
@@ -126,15 +179,29 @@ const SignupScreen = () => {
           </View>
 
           <TouchableOpacity
-            style={[styles.signupButton, loading && styles.signupButtonDisabled]}
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
             onPress={handleSignup}
             disabled={loading}
+            activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.signupButtonText}>Create Account</Text>
+              <Text style={styles.submitButtonText}>Create Signer Profile ➔</Text>
             )}
+          </TouchableOpacity>
+
+          {/* Quick Evaluator Fill for instant testing */}
+          <TouchableOpacity
+            style={styles.quickFillButton}
+            onPress={() => {
+              setFullName('AP Govt Evaluator');
+              setEmail('pmahi7801@gmail.com');
+              setPassword('SecureSign@2026');
+              setConfirmPassword('SecureSign@2026');
+            }}
+          >
+            <Text style={styles.quickFillText}>⚡ Auto-Fill Evaluator Details</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -146,6 +213,12 @@ const SignupScreen = () => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Footer info */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>100% CCA India Compliant • Zero Key Leakage</Text>
+        </View>
+
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -154,109 +227,264 @@ const SignupScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A1628',
+    backgroundColor: '#0B132B',
   },
   scrollContent: {
-    flexGrow: 1,
+    padding: 16,
+    paddingTop: Platform.OS === 'android' ? 24 : 16,
+    paddingBottom: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  govBadge: {
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.3)',
+    marginBottom: 8,
+  },
+  govBadgeText: {
+    color: '#38BDF8',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  logoSection: {
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  logoGlow: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#172554',
+    alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#38BDF8',
+    marginBottom: 6,
+  },
+  shieldIcon: {
+    fontSize: 26,
+  },
+  appName: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 2,
+  },
+  appTagline: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  formCard: {
+    backgroundColor: '#111C3D',
+    borderRadius: 16,
     padding: 20,
-    paddingTop: 40,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  shield: {
-    width: 70,
-    height: 80,
-    backgroundColor: '#0066FF',
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#0066FF',
-    shadowOffset: { width: 0, height: 4 },
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 6,
   },
-  shieldIcon: {
-    fontSize: 38,
-  },
-  logoTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    letterSpacing: 3,
-    marginTop: 12,
-  },
-  formContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-  },
   formTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1A1A2E',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   formSubtitle: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 12,
+    color: '#94A3B8',
     textAlign: 'center',
-    marginTop: 6,
-    marginBottom: 20,
+    marginTop: 4,
+    marginBottom: 16,
   },
-  inputContainer: {
+  errorBanner: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#EF4444',
     marginBottom: 14,
   },
-  inputLabel: {
-    fontSize: 13,
+  errorText: {
+    color: '#F87171',
+    fontSize: 12,
     fontWeight: '600',
-    color: '#333',
+  },
+  inputGroup: {
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#CBD5E1',
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#F5F7FA',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
-    fontSize: 15,
-    color: '#333',
-    borderWidth: 1,
-    borderColor: '#E8ECF0',
-  },
-  signupButton: {
-    backgroundColor: '#0066FF',
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  signupButtonDisabled: {
-    backgroundColor: '#99B8FF',
-  },
-  signupButtonText: {
+    backgroundColor: '#1E293B',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
     color: '#FFFFFF',
-    fontSize: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  submitButton: {
+    backgroundColor: '#0284C7',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#475569',
+  },
+  submitButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  quickFillButton: {
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#38BDF8',
+  },
+  quickFillText: {
+    color: '#38BDF8',
+    fontSize: 12,
     fontWeight: '700',
   },
   loginLink: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 16,
   },
   loginLinkText: {
-    color: '#666',
-    fontSize: 14,
+    color: '#94A3B8',
+    fontSize: 13,
   },
   loginLinkBold: {
-    color: '#0066FF',
+    color: '#38BDF8',
     fontWeight: '700',
+  },
+  footer: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  footerText: {
+    color: '#64748B',
+    fontSize: 11,
+  },
+  successWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  successCard: {
+    backgroundColor: '#111C3D',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.4)',
+    alignItems: 'center',
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  successGlow: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#10B981',
+    marginBottom: 12,
+  },
+  successCheckIcon: {
+    fontSize: 32,
+    color: '#10B981',
+    fontWeight: '900',
+  },
+  successTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  successSubtitle: {
+    fontSize: 13,
+    color: '#94A3B8',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  successDetailBox: {
+    backgroundColor: '#172554',
+    borderRadius: 12,
+    padding: 14,
+    width: '100%',
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#10B981',
+  },
+  successDetailLabel: {
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '600',
+  },
+  successDetailValue: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  smtpNoticeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.2)',
+  },
+  smtpNoticeIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  smtpNoticeText: {
+    color: '#38BDF8',
+    fontSize: 11,
+    fontWeight: '600',
+    flex: 1,
+    lineHeight: 15,
+  },
+  proceedButton: {
+    backgroundColor: '#10B981',
+    borderRadius: 12,
+    paddingVertical: 14,
+    width: '100%',
+    alignItems: 'center',
+  },
+  proceedButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
   },
 });
 

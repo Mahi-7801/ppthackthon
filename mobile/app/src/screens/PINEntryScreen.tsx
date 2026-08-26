@@ -54,7 +54,7 @@ const PINEntryScreen = () => {
       if (result) {
         // Validate the session after successful PIN verification
         SessionManager.validateSession();
-        
+
         // Navigate based on whether this is re-verification or initial verification
         if (isReVerification) {
           // Go back to the previous screen (DocumentSelect or SignConfirmation)
@@ -103,7 +103,7 @@ const PINEntryScreen = () => {
       <View style={styles.header}>
         <Text style={styles.title}>Enter PIN</Text>
         <Text style={styles.subtitle}>
-          {isReVerification 
+          {isReVerification
             ? 'Session expired. Please re-enter your PIN to continue.'
             : 'Enter your DSC token PIN to authenticate'
           }

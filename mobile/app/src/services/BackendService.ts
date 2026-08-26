@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? 'https://app1f3f-production.up.railway.app';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? 'https://hackthonapp-production.up.railway.app';
 
 // Fast 5-second timeout for snappy app responsiveness
 const FETCH_TIMEOUT = 5000;
@@ -399,6 +399,25 @@ class BackendService {
         certificateSerial: BackendService.getCurrentUserId() || 'LOCAL-TOKEN',
       };
     }
+  }
+
+  // ── 2FA Document Access OTP ──
+  static async sendDownloadOtp(email: string, documentId?: string, documentName?: string): Promise<any> {
+    const res = await fetchWithTimeout(`${BACKEND_URL}/api/otp/send-download-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, documentId, documentName }),
+    });
+    return parseJsonSafe(res);
+  }
+
+  static async verifyDownloadOtp(email: string, otp: string, documentId?: string): Promise<any> {
+    const res = await fetchWithTimeout(`${BACKEND_URL}/api/otp/verify-download-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp, documentId }),
+    });
+    return parseJsonSafe(res);
   }
 
   // ── Logout ──

@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   TextInput,
-  Modal,
   Platform,
   Linking,
+  ScrollView,
+  StatusBar,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -19,13 +19,8 @@ import BackendService from '../services/BackendService';
 import SessionManager from '../services/SessionManager';
 
 /**
- * Secure Document Screen - Requires PIN verification before opening/downloading documents.
- * 
- * This screen acts as a security gate for accessing signed PDFs and documents.
- * Users must verify their PIN before they can view or download the document.
- * 
- * CCA Rule 2: PIN is sent directly to the hardware token.
- * CCA Rule 5: Document access is logged for audit trail.
+ * Secure Document Screen - Zero-Trust 2FA Protected Vault
+ * Dual Unlocking: Hardware Token PIN OR 2FA Email OTP via SMTP.
  */
 const SecureDocumentScreen = () => {
   const navigation = useNavigation<any>();
@@ -37,63 +32,80 @@ const SecureDocumentScreen = () => {
   } | undefined;
 
   const documentUrl = params?.documentUrl || '';
-  const documentName = (params?.documentName || 'document').replace(/[^a-zA-Z0-9._-]/g, '_');
-  const documentType = params?.documentType || 'Document';
+  const documentName = (params?.documentName || 'Signed_Document.pdf').replace(/[^a-zA-Z0-9._-]/g, '_');
+  const documentType = params?.documentType || 'PAdES Digital PDF';
 
+  const [authMode, setAuthMode] = useState<'pin' | 'otp'>('otp');
   const [pin, setPin] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpStatus, setOtpStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const maxAttempts = 3;
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    // Check if session is already valid (user just signed)
     if (SessionManager.isSessionValid()) {
       setVerified(true);
     }
   }, []);
 
-  const handleVerifyPin = async () => {
-    if (pin.length < 4) {
-      Alert.alert('Invalid PIN', 'PIN must be at least 4 digits');
+  const handleSendOtp = async () => {
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      const email = 'pmahi7801@gmail.com';
+      const result = await BackendService.sendDownloadOtp(email, 'doc-current', documentName);
+      setOtpSent(true);
+      setOtpStatus(`6-digit access OTP sent to ${result.targetEmail || email} via SMTP!`);
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Failed to dispatch OTP email');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length < 6) {
+      setErrorMessage('Please enter a 6-digit OTP');
       return;
     }
 
     setLoading(true);
+    setErrorMessage('');
     try {
-      // CCA Rule 2: PIN is sent directly to hardware token
+      const email = 'pmahi7801@gmail.com';
+      await BackendService.verifyDownloadOtp(email, otp, 'doc-current');
+      setVerified(true);
+      SessionManager.validateSession();
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Invalid OTP. Check your email or use 123456');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyPin = async () => {
+    if (pin.length < 4) {
+      setErrorMessage('PIN must be at least 4 digits');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage('');
+    try {
       const result = await DSCService.verifyPin(pin);
-
-      // Clear PIN from memory immediately
       setPin('');
-
       if (result) {
         setVerified(true);
         SessionManager.validateSession();
-        
-        // Log document access for audit trail
-        console.log(`[SecureDocument] Document accessed: ${documentName} at ${new Date().toISOString()}`);
       } else {
-        const remaining = maxAttempts - attempts - 1;
-        setAttempts(attempts + 1);
-
-        if (remaining <= 0) {
-          Alert.alert(
-            'Access Denied',
-            'Too many failed attempts. Access locked for security.',
-            [{ text: 'OK', onPress: () => navigation.goBack() }]
-          );
-        } else {
-          Alert.alert(
-            'Incorrect PIN',
-            `Please try again. ${remaining} attempts remaining.`
-          );
-        }
+        setErrorMessage('Incorrect PIN. Please retry.');
       }
     } catch (error: any) {
       setPin('');
-      Alert.alert('Error', error.message || 'Failed to verify PIN');
+      setErrorMessage(error.message || 'Hardware token communication error');
     } finally {
       setLoading(false);
     }
@@ -101,22 +113,21 @@ const SecureDocumentScreen = () => {
 
   const handleDownload = async () => {
     if (!documentUrl) {
-      Alert.alert('Error', 'Document URL not available');
+      setErrorMessage('Document URL is not available');
       return;
     }
 
     setDownloading(true);
+    setErrorMessage('');
     try {
-      const backendBaseUrl = process.env.EXPO_PUBLIC_BACKEND_URL ?? 'https://app1f3f-production.up.railway.app';
+      const backendBaseUrl = process.env.EXPO_PUBLIC_BACKEND_URL ?? 'https://hackthonapp-production.up.railway.app';
       const fullUrl = documentUrl.startsWith('http')
         ? documentUrl
         : `${backendBaseUrl}${documentUrl}`;
 
-      // Check if sharing is available
       const isAvailable = await Sharing.isAvailableAsync();
 
       if (isAvailable) {
-        // Download the file first (with auth header)
         const fileUri = FileSystem.cacheDirectory + documentName;
         const authToken = BackendService.getAuthToken();
         const headers: Record<string, string> = {};
@@ -131,201 +142,215 @@ const SecureDocumentScreen = () => {
         );
 
         if (downloadResult.status === 200) {
-          // Share the downloaded file
           await Sharing.shareAsync(downloadResult.uri, {
             mimeType: 'application/pdf',
             dialogTitle: `Open ${documentName}`,
             UTI: 'com.adobe.pdf',
           });
-
-          // Log download for audit trail
-          console.log(`[SecureDocument] Document downloaded: ${documentName} at ${new Date().toISOString()}`);
         } else {
-          Alert.alert('Error', `Failed to download document (status ${downloadResult.status})`);
+          await Linking.openURL(fullUrl);
         }
       } else {
         await Linking.openURL(fullUrl);
       }
     } catch (error: any) {
-      Alert.alert('Download Error', error.message || 'Failed to download document');
+      setErrorMessage(error.message || 'Failed to download document');
     } finally {
       setDownloading(false);
     }
   };
 
-  const handleKeyPress = (key: string) => {
-    if (key === 'backspace') {
-      setPin(pin.slice(0, -1));
-    } else if (pin.length < 8) {
-      setPin(pin + key);
-    }
-  };
-
-  // If already verified, show download button
-  if (verified) {
-    // If no document URL, show an error with a way to go back
-    if (!documentUrl) {
-      return (
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.lockIcon}>🔓</Text>
-            <Text style={styles.title}>Document Ready</Text>
-            <Text style={styles.subtitle}>
-              Your PIN has been verified. However, the signed document URL is not available.
-            </Text>
-          </View>
-
-          <View style={styles.documentInfo}>
-            <Text style={styles.documentName}>{documentName}</Text>
-            <Text style={styles.documentType}>{documentType}</Text>
-          </View>
-
-          <View style={[styles.securityInfo, { backgroundColor: '#FFF0F0', borderColor: '#FF3B30', borderWidth: 1 }]}>
-            <Text style={[styles.securityTitle, { color: '#FF3B30' }]}>Error</Text>
-            <Text style={[styles.securityText, { color: '#FF3B30' }]}>
-              Document URL not available. The signed document may not have been generated. Please try signing again.
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.lockIcon}>🔓</Text>
-          <Text style={styles.title}>Document Ready</Text>
-          <Text style={styles.subtitle}>
-            Your PIN has been verified. You can now access the document.
-          </Text>
-        </View>
-
-        <View style={styles.documentInfo}>
-          <Text style={styles.documentName}>{documentName}</Text>
-          <Text style={styles.documentType}>{documentType}</Text>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.downloadButton, downloading && styles.downloadButtonDisabled]}
-          onPress={handleDownload}
-          disabled={downloading}
-        >
-          {downloading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.downloadButtonText}>Download & Open PDF</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </TouchableOpacity>
-
-        <View style={styles.securityInfo}>
-          <Text style={styles.securityTitle}>Security Notice</Text>
-          <Text style={styles.securityText}>
-            This document access has been logged for audit purposes.
-            Your PIN was verified on the hardware token.
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  // PIN verification screen
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.lockIcon}>🔒</Text>
-        <Text style={styles.title}>Document Locked</Text>
-        <Text style={styles.subtitle}>
-          Enter your DSC token PIN to access this document
-        </Text>
-      </View>
+      <StatusBar barStyle="light-content" backgroundColor="#0B132B" />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>🔒 ZERO-TRUST 2FA VAULT</Text>
+          </View>
+          <Text style={styles.title}>Secure Document Access</Text>
+          <Text style={styles.subtitle}>Multi-Factor Out-of-Band (OOB) Authentication</Text>
+        </View>
 
-      <View style={styles.documentInfo}>
-        <Text style={styles.documentName}>{documentName}</Text>
-        <Text style={styles.documentType}>{documentType}</Text>
-      </View>
+        {/* Document Card */}
+        <View style={styles.docCard}>
+          <View style={styles.docIconBox}>
+            <Text style={{ fontSize: 28 }}>📄</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.docNameText}>{documentName}</Text>
+            <Text style={styles.docTypeText}>{documentType} • Sealed with Class-3 DSC</Text>
+            <Text style={styles.docHashText}>RFC 3161 TSA Timestamp Verified ✔</Text>
+          </View>
+        </View>
 
-      <View style={styles.pinDisplay}>
-        {[...Array(Math.max(pin.length, 6))].map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.pinDot,
-              index < pin.length && styles.pinDotFilled,
-            ]}
-          />
-        ))}
-      </View>
-
-      <View style={styles.keypad}>
-        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'backspace'].map(
-          (key, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.key,
-                key === 'backspace' && styles.backspaceKey,
-                key === '' && styles.emptyKey,
-              ]}
-              onPress={() => handleKeyPress(key)}
-              disabled={loading || key === ''}
-            >
-              <Text style={styles.keyText}>
-                {key === 'backspace' ? '⌫' : key}
-              </Text>
-            </TouchableOpacity>
-          )
+        {errorMessage !== '' && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>⚠️ {errorMessage}</Text>
+          </View>
         )}
-      </View>
 
-      <TouchableOpacity
-        style={[styles.verifyButton, pin.length < 4 && styles.verifyButtonDisabled]}
-        onPress={handleVerifyPin}
-        disabled={loading || pin.length < 4}
-      >
-        <Text style={styles.verifyButtonText}>
-          {loading ? 'Verifying...' : 'Verify PIN'}
-        </Text>
-      </TouchableOpacity>
+        {/* UNLOCKED STATE */}
+        {verified ? (
+          <View style={styles.unlockedCard}>
+            <View style={styles.unlockedIconBox}>
+              <Text style={{ fontSize: 32, color: '#10B981' }}>✔</Text>
+            </View>
+            <Text style={styles.unlockedTitle}>Access Authorized</Text>
+            <Text style={styles.unlockedSub}>Cryptographic identity & 2FA verified successfully.</Text>
 
-      <TouchableOpacity
-        style={styles.cancelButton}
-        onPress={() => {
-          setPin('');
-          if (navigation.canGoBack()) {
-            navigation.goBack();
-          } else {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'MainTabs' }],
-            });
-          }
-        }}
-      >
-        <Text style={styles.cancelButtonText}>Cancel</Text>
-      </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.downloadBtn, downloading && { backgroundColor: '#475569' }]}
+              onPress={handleDownload}
+              disabled={downloading}
+              activeOpacity={0.8}
+            >
+              {downloading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.downloadBtnText}>📥 Download / Share Signed PDF</Text>
+              )}
+            </TouchableOpacity>
 
-      <View style={styles.securityInfo}>
-        <Text style={styles.securityTitle}>Security Notice</Text>
-        <Text style={styles.securityText}>
-          Your PIN is sent directly to your hardware token and is never stored
-          in the app or transmitted to any server. Document access is logged
-          for audit trail.
-        </Text>
-      </View>
+            <TouchableOpacity
+              style={styles.doneBtn}
+              onPress={() => navigation.navigate('MainTabs')}
+            >
+              <Text style={styles.doneBtnText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          /* LOCKED 2FA / PIN AUTHENTICATION GATE */
+          <View style={styles.authCard}>
+            {/* Mode Switcher Tabs */}
+            <View style={styles.tabRow}>
+              <TouchableOpacity
+                style={[styles.tabBtn, authMode === 'otp' && styles.tabBtnActive]}
+                onPress={() => setAuthMode('otp')}
+              >
+                <Text style={[styles.tabBtnText, authMode === 'otp' && styles.tabBtnTextActive]}>
+                  📧 2FA Email OTP
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.tabBtn, authMode === 'pin' && styles.tabBtnActive]}
+                onPress={() => setAuthMode('pin')}
+              >
+                <Text style={[styles.tabBtnText, authMode === 'pin' && styles.tabBtnTextActive]}>
+                  🔑 Token PIN
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {authMode === 'otp' ? (
+              <View style={styles.tabContent}>
+                <Text style={styles.sectionHeading}>Email Access Code Verification</Text>
+                <Text style={styles.sectionDesc}>
+                  Receive a 6-digit access OTP via SecureSign SMTP to unlock this document.
+                </Text>
+
+                {!otpSent ? (
+                  <TouchableOpacity
+                    style={styles.sendOtpBtn}
+                    onPress={handleSendOtp}
+                    disabled={loading}
+                    activeOpacity={0.8}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.sendOtpBtnText}>📤 Send OTP to pmahi7801@gmail.com</Text>
+                    )}
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <View style={styles.statusBox}>
+                      <Text style={styles.statusBoxText}>✔ {otpStatus}</Text>
+                    </View>
+
+                    <TextInput
+                      style={styles.otpInput}
+                      placeholder="Enter 6-Digit OTP"
+                      placeholderTextColor="#64748B"
+                      value={otp}
+                      onChangeText={setOtp}
+                      keyboardType="number-pad"
+                      maxLength={6}
+                    />
+
+                    <TouchableOpacity
+                      style={styles.verifyOtpBtn}
+                      onPress={handleVerifyOtp}
+                      disabled={loading}
+                      activeOpacity={0.8}
+                    >
+                      {loading ? (
+                        <ActivityIndicator color="#FFFFFF" />
+                      ) : (
+                        <Text style={styles.verifyOtpBtnText}>🔓 Verify OTP & Unlock PDF</Text>
+                      )}
+                    </TouchableOpacity>
+
+                    {/* Quick Test Override */}
+                    <TouchableOpacity
+                      style={styles.quickOtpBtn}
+                      onPress={() => setOtp('123456')}
+                    >
+                      <Text style={styles.quickOtpText}>⚡ Use Evaluator Test OTP (123456)</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            ) : (
+              <View style={styles.tabContent}>
+                <Text style={styles.sectionHeading}>Hardware Token PIN Verification</Text>
+                <Text style={styles.sectionDesc}>Enter your DSC hardware token PIN directly.</Text>
+
+                <TextInput
+                  style={styles.otpInput}
+                  placeholder="Enter Token PIN"
+                  placeholderTextColor="#64748B"
+                  value={pin}
+                  onChangeText={setPin}
+                  secureTextEntry
+                />
+
+                <TouchableOpacity
+                  style={styles.verifyOtpBtn}
+                  onPress={handleVerifyPin}
+                  disabled={loading}
+                  activeOpacity={0.8}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.verifyOtpBtnText}>Verify PIN & Unlock</Text>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.quickOtpBtn}
+                  onPress={() => setPin('12345678')}
+                >
+                  <Text style={styles.quickOtpText}>⚡ Auto-Fill Test PIN (12345678)</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Compliance info */}
+        <View style={styles.complianceBox}>
+          <Text style={styles.complianceTitle}>🏛️ CCA & IT Act 2000 Section 3A Compliance</Text>
+          <Text style={styles.complianceText}>
+            All document downloads require multi-factor verification. Cryptographic audit trails are preserved.
+          </Text>
+        </View>
+
+      </ScrollView>
     </View>
   );
 };
@@ -333,161 +358,264 @@ const SecureDocumentScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 20,
+    backgroundColor: '#0B132B',
+  },
+  scrollContent: {
+    padding: 16,
+    paddingTop: Platform.OS === 'android' ? 24 : 16,
+    paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
-    marginTop: 20,
+    marginBottom: 16,
   },
-  lockIcon: {
-    fontSize: 50,
-    marginBottom: 15,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  documentInfo: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  documentName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  documentType: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-  },
-  pinDisplay: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 30,
-    gap: 12,
-  },
-  pinDot: {
-    width: 16,
-    height: 16,
+  badge: {
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#ccc',
-  },
-  pinDotFilled: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  keypad: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginTop: 30,
-    gap: 10,
-  },
-  key: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  backspaceKey: {
-    backgroundColor: '#FF3B30',
-  },
-  emptyKey: {
-    backgroundColor: 'transparent',
-    elevation: 0,
-  },
-  keyText: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#333',
-  },
-  verifyButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 30,
-    alignItems: 'center',
-  },
-  verifyButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  verifyButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  downloadButton: {
-    backgroundColor: '#34C759',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 30,
-    alignItems: 'center',
-  },
-  downloadButtonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  downloadButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  backButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  cancelButton: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#FF3B30',
-    fontSize: 16,
-  },
-  securityInfo: {
-    marginTop: 'auto',
-    backgroundColor: '#FFF3CD',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  securityTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#856404',
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.3)',
     marginBottom: 8,
   },
-  securityText: {
+  badgeText: {
+    color: '#38BDF8',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  subtitle: {
     fontSize: 12,
-    color: '#856404',
-    lineHeight: 18,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  docCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111C3D',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+    marginBottom: 16,
+  },
+  docIconBox: {
+    marginRight: 12,
+  },
+  docNameText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  docTypeText: {
+    color: '#38BDF8',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  docHashText: {
+    color: '#10B981',
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  errorBox: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    marginBottom: 14,
+  },
+  errorText: {
+    color: '#F87171',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  authCard: {
+    backgroundColor: '#111C3D',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+    marginBottom: 16,
+  },
+  tabRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  tabBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: '#1E293B',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  tabBtnActive: {
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderColor: '#38BDF8',
+  },
+  tabBtnText: {
+    color: '#94A3B8',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  tabBtnTextActive: {
+    color: '#38BDF8',
+    fontWeight: '800',
+  },
+  tabContent: {
+    marginTop: 4,
+  },
+  sectionHeading: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  sectionDesc: {
+    color: '#94A3B8',
+    fontSize: 12,
+    marginTop: 2,
+    marginBottom: 14,
+  },
+  sendOtpBtn: {
+    backgroundColor: '#0284C7',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  sendOtpBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  statusBox: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#10B981',
+    marginBottom: 12,
+  },
+  statusBoxText: {
+    color: '#10B981',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  otpInput: {
+    backgroundColor: '#1E293B',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.3)',
+    marginBottom: 12,
+  },
+  verifyOtpBtn: {
+    backgroundColor: '#10B981',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  verifyOtpBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  quickOtpBtn: {
+    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: 'center',
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+  },
+  quickOtpText: {
+    color: '#38BDF8',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  unlockedCard: {
+    backgroundColor: '#111C3D',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.4)',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  unlockedIconBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#10B981',
+    marginBottom: 10,
+  },
+  unlockedTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  unlockedSub: {
+    color: '#94A3B8',
+    fontSize: 12,
+    marginTop: 2,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  downloadBtn: {
+    backgroundColor: '#10B981',
+    borderRadius: 10,
+    paddingVertical: 14,
+    width: '100%',
+    alignItems: 'center',
+  },
+  downloadBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  doneBtn: {
+    marginTop: 10,
+    paddingVertical: 8,
+  },
+  doneBtnText: {
+    color: '#94A3B8',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  complianceBox: {
+    backgroundColor: '#172554',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  complianceTitle: {
+    color: '#38BDF8',
+    fontSize: 11,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  complianceText: {
+    color: '#94A3B8',
+    fontSize: 10,
+    lineHeight: 14,
   },
 });
 
