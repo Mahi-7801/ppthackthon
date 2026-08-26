@@ -206,30 +206,9 @@ const DocumentSelectScreen = () => {
         <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
       ) : (
         <>
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
-            <TouchableOpacity style={[styles.addButton, { flex: 1, marginTop: 0 }]} onPress={handlePickDocument}>
-              <Text style={styles.addButtonText}>📁 Pick File</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.addButton, { flex: 1, marginTop: 0, backgroundColor: '#10B981' }]}
-              onPress={() => {
-                const sampleDoc = {
-                  id: 'ap-gov-order-104',
-                  name: 'AP_Govt_Order_MS_104.pdf',
-                  size: '142.5 KB',
-                  created: new Date().toISOString().split('T')[0],
-                  hash: 'SHA256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069',
-                  uri: null,
-                  isLocal: true,
-                };
-                setDocuments(prev => [sampleDoc, ...prev.filter(d => d.id !== sampleDoc.id)]);
-                setSelectedDoc(sampleDoc);
-              }}
-            >
-              <Text style={styles.addButtonText}>⚡ Sample G.O. PDF</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.addButton} onPress={handlePickDocument}>
+            <Text style={styles.addButtonText}>📁 Pick Document to Sign (PDF)</Text>
+          </TouchableOpacity>
 
           <FlatList
             data={documents}
@@ -237,6 +216,14 @@ const DocumentSelectScreen = () => {
             keyExtractor={(item) => item.id}
             style={styles.docList}
             contentContainerStyle={styles.docListContent}
+            ListEmptyComponent={
+              <View style={{ alignItems: 'center', padding: 24 }}>
+                <Text style={{ fontSize: 36, marginBottom: 8 }}>📄</Text>
+                <Text style={{ color: '#64748B', textAlign: 'center', fontSize: 14 }}>
+                  No documents selected yet. Tap "Pick Document" above to choose a PDF from your phone.
+                </Text>
+              </View>
+            }
           />
 
           <TouchableOpacity

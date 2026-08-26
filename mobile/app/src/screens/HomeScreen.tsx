@@ -180,16 +180,16 @@ const HomeScreen = () => {
               
               <View style={styles.divider} />
 
-              {/* 1-Tap Evaluator Sandbox Switch */}
+              {/* Direct Token Signing Entry */}
               <TouchableOpacity
                 style={styles.sandboxButton}
                 onPress={handleLaunchSandbox}
                 activeOpacity={0.8}
               >
-                <Text style={styles.sandboxIcon}>🧪</Text>
+                <Text style={styles.sandboxIcon}>🔐</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.sandboxBtnTitle}>Launch Evaluator Sandbox</Text>
-                  <Text style={styles.sandboxBtnSub}>Test complete 8-step signing flow without physical dongle</Text>
+                  <Text style={styles.sandboxBtnTitle}>Initialize Token Signing Session</Text>
+                  <Text style={styles.sandboxBtnSub}>Enter DSC User PIN to authenticate cryptographic channel</Text>
                 </View>
                 <Text style={styles.sandboxArrow}>➔</Text>
               </TouchableOpacity>
