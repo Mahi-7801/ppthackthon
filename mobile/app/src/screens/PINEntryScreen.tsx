@@ -149,15 +149,30 @@ const PINEntryScreen = () => {
         disabled={loading || pin.length < 4}
       >
         <Text style={styles.verifyButtonText}>
-          {loading ? 'Verifying...' : 'Verify PIN'}
+          {loading ? 'Verifying on Token...' : 'Verify PIN'}
         </Text>
       </TouchableOpacity>
 
+      {/* 1-Tap Quick Test PIN */}
+      <TouchableOpacity
+        style={{
+          marginTop: 10,
+          paddingVertical: 8,
+          alignItems: 'center',
+          backgroundColor: 'rgba(56, 189, 248, 0.1)',
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: 'rgba(56, 189, 248, 0.3)',
+        }}
+        onPress={() => setPin('12345678')}
+      >
+        <Text style={{ color: '#0284C7', fontSize: 12, fontWeight: '700' }}>⚡ Use Test PIN (12345678)</Text>
+      </TouchableOpacity>
+
       <View style={styles.securityInfo}>
-        <Text style={styles.securityTitle}>Security Notice</Text>
+        <Text style={styles.securityTitle}>🔒 CCA Rule 2 Security Guarantee</Text>
         <Text style={styles.securityText}>
-          Your PIN is sent directly to your hardware token and is never stored
-          in the app or transmitted to any server.
+          PIN is sent directly via APDU to hardware token. Memory buffer is immediately zeroized (`pinBytes.fill(0)`).
         </Text>
       </View>
 

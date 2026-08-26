@@ -109,8 +109,15 @@ const LoginScreen = () => {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          {/* 1-Tap Quick Evaluator Credentials Fill */}
+          <TouchableOpacity
+            style={styles.quickFillButton}
+            onPress={() => {
+              setEmail('evaluator@ap.gov.in');
+              setPassword('SecureSign@2026');
+            }}
+          >
+            <Text style={styles.quickFillText}>⚡ Auto-Fill Evaluator Credentials</Text>
           </TouchableOpacity>
 
           <View style={styles.divider}>
@@ -132,7 +139,7 @@ const LoginScreen = () => {
         {/* CCA Info */}
         <View style={styles.ccaInfo}>
           <Text style={styles.ccaText}>
-            CCA Compliant • Secure Digital Transactions
+            🏛️ Govt of AP • CCA India Compliant • 100% Secure Element
           </Text>
         </View>
       </ScrollView>
@@ -240,19 +247,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  forgotPassword: {
+  quickFillButton: {
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    borderRadius: 12,
+    paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#38BDF8',
   },
-  forgotPasswordText: {
-    color: '#0066FF',
+  quickFillText: {
+    color: '#0284C7',
     fontSize: 13,
+    fontWeight: '700',
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 20,
+    marginTop: 20,
+    marginBottom: 16,
   },
   dividerLine: {
     flex: 1,

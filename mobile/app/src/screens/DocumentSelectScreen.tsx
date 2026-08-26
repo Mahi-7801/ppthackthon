@@ -206,9 +206,30 @@ const DocumentSelectScreen = () => {
         <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
       ) : (
         <>
-          <TouchableOpacity style={styles.addButton} onPress={handlePickDocument}>
-            <Text style={styles.addButtonText}>+ Add Document from Device</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
+            <TouchableOpacity style={[styles.addButton, { flex: 1, marginTop: 0 }]} onPress={handlePickDocument}>
+              <Text style={styles.addButtonText}>📁 Pick File</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.addButton, { flex: 1, marginTop: 0, backgroundColor: '#10B981' }]}
+              onPress={() => {
+                const sampleDoc = {
+                  id: 'ap-gov-order-104',
+                  name: 'AP_Govt_Order_MS_104.pdf',
+                  size: '142.5 KB',
+                  created: new Date().toISOString().split('T')[0],
+                  hash: 'SHA256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069',
+                  uri: null,
+                  isLocal: true,
+                };
+                setDocuments(prev => [sampleDoc, ...prev.filter(d => d.id !== sampleDoc.id)]);
+                setSelectedDoc(sampleDoc);
+              }}
+            >
+              <Text style={styles.addButtonText}>⚡ Sample G.O. PDF</Text>
+            </TouchableOpacity>
+          </View>
 
           <FlatList
             data={documents}
