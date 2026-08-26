@@ -6,7 +6,7 @@ import time
 import hashlib
 import sys
 
-BASE_URL = "https://app1f3f-production.up.railway.app"
+BASE_URL = "https://hackthonapp-production.up.railway.app"
 
 def req(method, path, headers=None, body_dict=None):
     url = f"{BASE_URL}{path}"
