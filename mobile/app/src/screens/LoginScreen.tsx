@@ -109,17 +109,6 @@ const LoginScreen = () => {
             )}
           </TouchableOpacity>
 
-          {/* 1-Tap Quick Evaluator Credentials Fill */}
-          <TouchableOpacity
-            style={styles.quickFillButton}
-            onPress={() => {
-              setEmail('evaluator@ap.gov.in');
-              setPassword('SecureSign@2026');
-            }}
-          >
-            <Text style={styles.quickFillText}>⚡ Auto-Fill Evaluator Credentials</Text>
-          </TouchableOpacity>
-
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>OR</Text>

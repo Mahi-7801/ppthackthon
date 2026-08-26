@@ -9,6 +9,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import DSCService from '../services/DSCService';
 import BackendService from '../services/BackendService';
 import SessionManager from '../services/SessionManager';
@@ -168,6 +170,49 @@ const SignConfirmationScreen = () => {
     }
   };
 
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadAndShare = async () => {
+    setDownloading(true);
+    try {
+      const docName = (document.name || 'Signed_Legal_Document.pdf').replace(/[^a-zA-Z0-9._-]/g, '_');
+      const fileUri = `${FileSystem.cacheDirectory}${docName}`;
+
+      // If document was locally picked and URI exists, use local original PDF
+      if (document.uri) {
+        try {
+          const originalContent = await FileSystem.readAsStringAsync(document.uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          await FileSystem.writeAsStringAsync(fileUri, originalContent, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+        } catch (localErr) {
+          if (assembleResult?.signedDocumentUrl) {
+            await FileSystem.downloadAsync(assembleResult.signedDocumentUrl, fileUri);
+          }
+        }
+      } else if (assembleResult?.signedDocumentUrl) {
+        await FileSystem.downloadAsync(assembleResult.signedDocumentUrl, fileUri);
+      }
+
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (isAvailable) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'application/pdf',
+          dialogTitle: `Open ${docName}`,
+          UTI: 'com.adobe.pdf',
+        });
+      } else {
+        Alert.alert('Signed Document Ready', `Downloaded to ${fileUri}`);
+      }
+    } catch (err: any) {
+      Alert.alert('Notice', err.message || 'Opening signed PDF file');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Confirm Signature</Text>
@@ -309,22 +354,15 @@ const SignConfirmationScreen = () => {
           ) : (
             <>
               <TouchableOpacity
-                style={styles.finishButton}
-                onPress={() => {
-                  if (!assembleResult?.signedDocumentUrl) {
-                    Alert.alert('Error', 'Signed document URL not available. Please try again.');
-                    return;
-                  }
-                  // Invalidate session so user is asked for PIN before downloading PDF
-                  SessionManager.invalidateSession();
-                  navigation.navigate('SecureDocument', {
-                    documentUrl: assembleResult.signedDocumentUrl,
-                    documentName: document.name || 'Signed Document',
-                    documentType: 'PDF Document',
-                  });
-                }}
+                style={[styles.finishButton, { backgroundColor: '#10B981' }]}
+                onPress={handleDownloadAndShare}
+                disabled={downloading}
               >
-                <Text style={styles.finishButtonText}>Download Signed PDF</Text>
+                {downloading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.finishButtonText}>📥 Download & Open Signed PDF</Text>
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity

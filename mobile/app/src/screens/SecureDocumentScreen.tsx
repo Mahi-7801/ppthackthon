@@ -330,13 +330,6 @@ const SecureDocumentScreen = () => {
                     <Text style={styles.verifyOtpBtnText}>Verify PIN & Unlock</Text>
                   )}
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.quickOtpBtn}
-                  onPress={() => setPin('12345678')}
-                >
-                  <Text style={styles.quickOtpText}>⚡ Auto-Fill Test PIN (12345678)</Text>
-                </TouchableOpacity>
               </View>
             )}
           </View>

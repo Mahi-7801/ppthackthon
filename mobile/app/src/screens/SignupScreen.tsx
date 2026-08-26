@@ -193,18 +193,6 @@ const SignupScreen = () => {
 
           {/* Quick Evaluator Fill for instant testing */}
           <TouchableOpacity
-            style={styles.quickFillButton}
-            onPress={() => {
-              setFullName('AP Govt Evaluator');
-              setEmail('pmahi7801@gmail.com');
-              setPassword('SecureSign@2026');
-              setConfirmPassword('SecureSign@2026');
-            }}
-          >
-            <Text style={styles.quickFillText}>⚡ Auto-Fill Evaluator Details</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             style={styles.loginLink}
             onPress={() => navigation.navigate('Login')}
           >

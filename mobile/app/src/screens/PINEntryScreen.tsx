@@ -162,22 +162,6 @@ const PINEntryScreen = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* 1-Tap Quick Test PIN */}
-      <TouchableOpacity
-        style={{
-          marginTop: 10,
-          paddingVertical: 8,
-          alignItems: 'center',
-          backgroundColor: 'rgba(56, 189, 248, 0.1)',
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: 'rgba(56, 189, 248, 0.3)',
-        }}
-        onPress={() => setPin('12345678')}
-      >
-        <Text style={{ color: '#0284C7', fontSize: 12, fontWeight: '700' }}>⚡ Use Test PIN (12345678)</Text>
-      </TouchableOpacity>
-
       <View style={styles.securityInfo}>
         <Text style={styles.securityTitle}>🔒 CCA Rule 2 Security Guarantee</Text>
         <Text style={styles.securityText}>
