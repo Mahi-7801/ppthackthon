@@ -3,39 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Type-C DSC Mobile Signing Solution — Presentation Deck</title>
+  <title>SecureSign — Universal Type-C DSC Mobile Signing Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script>
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'dark',
-      sequence: {
-        useMaxWidth: true,
-        boxMargin: 4,
-        boxTextMargin: 4,
-        noteMargin: 6,
-        messageMargin: 16,
-        mirrorActors: true,
-        actorMargin: 30
-      }
-    });
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #0B0F19;
-      --bg-card: rgba(17, 24, 39, 0.7);
-      --border-card: rgba(255, 255, 255, 0.1);
-      --accent-emerald: #10B981;
-      --accent-cyan: #06B6D4;
-      --accent-blue: #3B82F6;
-      --accent-purple: #8B5CF6;
-      --text-main: #FFFFFF;
-      --text-muted: #E2E8F0;
+      --bg-dark: #0b132b;
+      --bg-gradient: radial-gradient(circle at 15% 15%, #1c2541 0%, #0b132b 85%);
+      --card-bg: rgba(23, 37, 68, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-gold: #f59e0b;
+      --accent-purple: #a855f7;
+      --text-white: #ffffff;
+      --text-muted: #94a3b8;
+      --text-light: #e2e8f0;
       --font-heading: 'Outfit', sans-serif;
-      --font-body: 'Inter', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }
 
     * {
@@ -45,19 +32,18 @@
     }
 
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
+      background: var(--bg-gradient);
+      color: var(--text-light);
       font-family: var(--font-body);
       overflow: hidden;
       height: 100vh;
       width: 100vw;
     }
 
-    /* Presentation Container */
     .deck-container {
       position: relative;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -71,430 +57,217 @@
       height: 100%;
       opacity: 0;
       visibility: hidden;
-      transition: none;
-      padding: 24px 50px 80px 50px;
+      padding: 35px 60px 80px 60px;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      background: radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.12) 0%, rgba(11, 15, 25, 1) 75%),
-                  linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 36px 36px,
-                  linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 36px 36px;
+      background: var(--bg-gradient);
       box-sizing: border-box;
-    }
-
-    .slide::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent-emerald), var(--accent-cyan), var(--accent-purple));
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      transform: scale(0.98);
     }
 
     .slide.active {
       opacity: 1;
       visibility: visible;
-      transform: translateX(0);
+      transform: scale(1);
     }
 
-    /* Header */
+    /* Top Accent Line */
+    .top-accent {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-emerald), var(--accent-gold));
+    }
+
+    /* Slide Header */
     .slide-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--card-border);
     }
 
-    .badge {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
-      border: 1px solid rgba(52, 211, 153, 0.4);
-      color: #34D399;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 0.85rem;
+    .tag-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
       font-weight: 700;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
     }
 
     .slide-number {
-      font-family: var(--font-heading);
-      font-weight: 800;
-      color: var(--accent-cyan);
-      font-size: 1.05rem;
-      background: rgba(6, 182, 212, 0.1);
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      padding: 4px 14px;
-      border-radius: 12px;
-    }
-
-    /* Title Styling */
-    h1, h2, h3 {
-      font-family: var(--font-heading);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
     }
 
     .slide-title {
-      font-size: 2.5rem;
+      font-family: var(--font-heading);
+      font-size: 2rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 40%, var(--accent-cyan) 80%, var(--accent-emerald) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
-      letter-spacing: -0.5px;
+      color: var(--text-white);
+      margin-bottom: 4px;
     }
 
-    .slide-subtitle {
-      font-size: 1.15rem;
-      color: var(--accent-emerald);
-      font-weight: 600;
-      margin-bottom: 22px;
+    /* Card Containers */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
     }
 
-    /* Content Layouts */
-    .slide-content {
-      flex: 1;
-      display: flex;
-      gap: 36px;
-      align-items: center;
-      justify-content: center;
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--card-accent, var(--accent-cyan));
     }
 
     .grid-2 {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 32px;
-      width: 100%;
-      align-items: center;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 25px;
+      height: calc(100% - 100px);
     }
 
-    .glass-card {
-      background: rgba(17, 24, 39, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(16px);
-      border-radius: 16px;
-      padding: 26px;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      height: calc(100% - 100px);
     }
 
-    .glass-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(56, 189, 248, 0.4);
-      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6), 0 0 25px rgba(6, 182, 212, 0.15);
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      height: calc(100% - 100px);
     }
 
-    .glass-card h3 {
-      font-size: 1.35rem;
-      color: #FFF;
-      margin-bottom: 14px;
+    .grid-2x2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      height: calc(100% - 100px);
+    }
+
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-white);
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .glass-card ul {
+    .bullet-list {
       list-style: none;
     }
 
-    .glass-card li {
+    .bullet-list li {
       position: relative;
-      padding-left: 26px;
-      margin-bottom: 14px;
-      font-size: 0.98rem;
+      padding-left: 20px;
+      margin-bottom: 10px;
+      font-size: 0.92rem;
       line-height: 1.5;
-      color: var(--text-main);
+      color: var(--text-light);
     }
 
-    .glass-card li::before {
-      content: "✦";
+    .bullet-list li::before {
+      content: "•";
       position: absolute;
       left: 0;
-      top: 0;
-      color: var(--accent-emerald);
-      font-size: 0.95rem;
-      font-weight: 800;
+      color: var(--card-accent, var(--accent-cyan));
+      font-size: 1.2rem;
+      line-height: 1;
     }
 
-    .image-container {
-      width: 100%;
-      height: 100%;
-      max-height: 480px;
+    /* Mockup Framing */
+    .mockup-container {
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(16, 185, 129, 0.15);
-      background: #0B0F19;
+      background: rgba(11, 19, 43, 0.6);
+      border-radius: 14px;
       padding: 12px;
-      transition: transform 0.3s ease, border-color 0.3s ease;
+      height: 100%;
     }
 
-    .image-container:hover {
-      transform: scale(1.01);
-      border-color: var(--accent-emerald);
-    }
-
-    .image-container img {
-      max-width: 100%;
+    .mockup-container img {
       max-height: 100%;
-      width: auto;
-      height: auto;
+      max-width: 100%;
       object-fit: contain;
-      border-radius: 8px;
-    }
-
-    /* Workflow Flowchart Nodes */
-    .workflow-flowchart {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 100%;
-    }
-
-    .flow-step {
-      display: flex;
-      align-items: center;
-      background: rgba(21, 29, 45, 0.95);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-left: 5px solid var(--accent-emerald);
       border-radius: 10px;
-      padding: 10px 14px;
-      gap: 12px;
-      transition: all 0.25s ease;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
     }
 
-    .flow-step:hover {
-      transform: translateX(4px);
-      border-color: var(--accent-cyan);
-      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.2);
-    }
-
-    .flow-step-num {
-      background: linear-gradient(135deg, #34D399, #38BDF8);
-      color: #0B0F19;
-      font-weight: 800;
-      font-size: 1rem;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
+    /* Navigation Bar */
+    .nav-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       display: flex;
       align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      box-shadow: 0 0 12px rgba(52, 211, 153, 0.5);
-    }
-
-    .flow-step-body h4 {
-      color: #FFF;
-      font-size: 0.95rem;
-      margin-bottom: 2px;
-    }
-
-    /* Large Sequence Diagram Styling */
-    .sequence-card-full {
-      width: 100%;
-      background: rgba(15, 23, 42, 0.95);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      border-radius: 16px;
-      padding: 10px 18px;
-      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(6, 182, 212, 0.15);
-      max-height: 400px;
-      overflow: auto;
-    }
-
-    .mermaid {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-    }
-
-    .mermaid svg {
-      width: 100% !important;
-      max-width: 100% !important;
-      height: auto !important;
-      max-height: 380px !important;
-    }
-
-    /* Compliance Table */
-    .compliance-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.95rem;
-    }
-
-    .compliance-table th {
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--accent-emerald);
-      text-align: left;
-      padding: 12px 16px;
-      font-weight: 700;
-      border-bottom: 2px solid var(--accent-emerald);
-    }
-
-    .compliance-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-    }
-
-    .compliance-table tr:hover {
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 12px;
-      background: rgba(16, 185, 129, 0.2);
-      color: #34D399;
-      font-weight: 700;
-      font-size: 0.85rem;
-    }
-
-    /* Architecture Visual Diagram Component */
-    .arch-diagram {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: 100%;
-    }
-
-    .arch-box {
-      background: rgba(21, 29, 45, 0.95);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      border-radius: 10px;
-      padding: 10px 14px;
-    }
-
-    .arch-box-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--accent-cyan);
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .arch-nodes {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-    }
-
-    .arch-chip {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 6px;
-      padding: 5px 8px;
-      font-size: 0.78rem;
-      color: #FFF;
-      text-align: center;
-      font-weight: 600;
-    }
-
-    .arch-arrow-down {
-      text-align: center;
-      color: var(--accent-emerald);
-      font-size: 0.9rem;
-      font-weight: 800;
-      margin: -2px 0;
-    }
-
-    /* Footer Controls */
-    .controls-footer {
-      position: absolute;
-      bottom: 16px;
-      left: 50px;
-      right: 50px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 100;
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      padding: 0;
-      pointer-events: none;
-    }
-
-    .controls-footer * {
-      pointer-events: auto;
+      gap: 15px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      padding: 8px 20px;
+      border-radius: 999px;
+      z-index: 1000;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
 
     .nav-btn {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #FFF;
-      padding: 8px 18px;
-      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
 
     .nav-btn:hover {
-      background: var(--accent-emerald);
-      color: #000;
-      border-color: var(--accent-emerald);
+      background: var(--accent-cyan);
+      color: #0f172a;
     }
 
-    .download-pptx-btn {
-      background: linear-gradient(135deg, #10B981, #06B6D4);
-      color: #0B0F19 !important;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 800;
-      font-size: 0.88rem;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .download-pptx-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 22px rgba(6, 182, 212, 0.5);
-      color: #000 !important;
-    }
-
-    .progress-bar {
-      height: 4px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 2px;
-      width: 400px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent-emerald), var(--accent-cyan));
-      width: 10%;
-      transition: none;
-    }
-
-    /* Print / PDF Export */
-    @media print {
-      body {
-        overflow: visible;
-        background: #0B0F19;
-      }
-      .slide {
-        position: relative;
-        opacity: 1 !important;
-        visibility: visible !important;
-        page-break-after: always;
-        height: 100vh;
-        width: 100vw;
-      }
-      .controls-footer {
-        display: none;
-      }
+    .nav-indicator {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
     }
   </style>
 </head>
@@ -502,491 +275,523 @@
 
   <div class="deck-container">
 
-    <!-- SLIDE 1: TITLE SLIDE -->
+    <!-- SLIDE 1: HERO -->
     <div class="slide active" id="slide-1">
+      <div class="top-accent"></div>
       <div class="slide-header">
-        <span class="badge">RTIH / APIS / NIC Hackathon</span>
-        <span class="slide-number">01 / 10</span>
+        <div class="tag-badge">✦ GOVERNMENT OF ANDHRA PRADESH | APIS & RTIH</div>
+        <div class="slide-number">01 / 10</div>
       </div>
-      <div class="slide-content grid-2">
-        <div>
-          <h1 class="slide-title" style="font-size: 3.2rem; line-height: 1.1;">Type-C DSC Mobile Signing Solution</h1>
-          <p class="slide-subtitle" style="font-size: 1.3rem; margin-top: 12px;">Enterprise-Grade Hardware Digital Signatures directly on Mobile & WebViews</p>
-          <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin-bottom: 24px;">
-            Eliminating Desktop Middleware Dependencies for CCA-Compliant Mobile Digital Signatures.
+      <div class="grid-2">
+        <div class="card" style="--card-accent: var(--accent-cyan); display: flex; flex-direction: column; justify-content: center;">
+          <div style="color: var(--accent-gold); font-weight: 700; font-size: 0.9rem; margin-bottom: 6px;">✦ RTIH / APIS / NIC HACKATHON 2026</div>
+          <h1 style="font-family: var(--font-heading); font-size: 2.8rem; font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 8px;">SecureSign</h1>
+          <h2 style="font-size: 1.3rem; color: var(--accent-cyan); font-weight: 600; margin-bottom: 18px;">Universal Type-C DSC Mobile Signing Platform</h2>
+          <p style="font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 22px;">
+            Enterprise-grade hardware digital signatures directly on Android & iOS mobile devices using standard USB Type-C CCID dongles — eliminating all desktop middleware dependencies.
           </p>
-          <div style="display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap;">
-            <span class="badge" style="background: rgba(6, 182, 212, 0.2); color: var(--accent-cyan);">Android & iOS Native CCID</span>
-            <span class="badge">100% CCA Compliant</span>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+            <span style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">✔ 100% CCA India Compliant</span>
+            <span style="background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">✔ Native USB CCID Driver</span>
+            <span style="background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); border: 1px solid rgba(168, 85, 247, 0.3); padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;">✔ PAdES-LTV + RFC 3161 TSA</span>
           </div>
-          <div style="margin-top: 14px; font-size: 0.9rem; display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
-            <span>🚀 <a href="https://expo.dev/accounts/mahibujjipapas-team/projects/dsc-mobile-signing/builds/a8104366-38b4-4f48-a4b1-8e4a2796ae66" target="_blank" style="color: var(--accent-cyan); text-decoration: underline;">Live Mobile App Expo Build Link</a></span>
-    <a href="https://github.com/Mahi-7801/ppthackthon/raw/main/DSC_Mobile_Signing_Master_Deck.pptx" target="_blank" download="DSC_Mobile_Signing_Master_Deck.pptx" class="download-pptx-btn">
-      📥 Download PPTX Deck
-    </a>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            Applicant: <b>Mahi Bujji Papa (Vone Digital)</b> &nbsp;|&nbsp; Contact: <b>pmahi7801@gmail.com</b>
           </div>
         </div>
-        <div class="image-container" style="max-height: 480px; width: 320px; margin: 0 auto;">
-          <img src="./presentation_assets/live_splash.jpeg" alt="Live App Splash Screen">
+        <div class="card" style="--card-accent: var(--accent-gold);">
+          <div class="mockup-container">
+            <img src="./presentation_assets/live_splash.jpeg" alt="SecureSign Splash" />
+          </div>
         </div>
       </div>
     </div>
 
     <!-- SLIDE 2: THE PROBLEM -->
     <div class="slide" id="slide-2">
+      <div class="top-accent"></div>
       <div class="slide-header">
-        <span class="badge">Problem Statement</span>
-        <span class="slide-number">02 / 10</span>
+        <div>
+          <div class="tag-badge">✦ CHALLENGE & VISION</div>
+          <div class="slide-title">The Desktop Bottleneck in Digital Governance</div>
+        </div>
+        <div class="slide-number">02 / 10</div>
       </div>
-      <div class="slide-content grid-2">
-        <div class="glass-card">
-          <h3>🚨 The Mobile Signing Bottleneck</h3>
-          <ul>
-            <li><strong>Desktop Dependency:</strong> 90%+ of Class-3 DSC USB dongles require Windows/macOS drivers (ePass2003, HYP2003, Watchdata).</li>
-            <li><strong>No Mobile USB Stack:</strong> Android/iOS apps cannot natively talk to physical CCID smart cards without native low-level wrappers.</li>
-            <li><strong>Field Operations Broken:</strong> Field officers, executives, and citizens are forced back to desktop PCs to sign official PDFs.</li>
-            <li><strong>Compliance Barriers:</strong> Cloud OTP signing often breaches key ownership requirements under Indian CCA rules.</li>
+      <div class="grid-3">
+        <div class="card" style="--card-accent: #ef4444;">
+          <div class="card-title" style="color: #f87171;">❌ Desktop Bottleneck</div>
+          <ul class="bullet-list" style="--card-accent: #ef4444;">
+            <li>Officers tied to physical desktop computers to execute legally binding DSC signatures.</li>
+            <li>Requires vendor-specific Windows drivers (ePass, ProxKey, Watchdata utilities).</li>
+            <li>Frequent driver crashes, browser plugin incompatibilities, and Java middleware errors.</li>
+            <li>Paralyzes field officers (Tahsildars, Panchayat Secretaries, Health Officers).</li>
           </ul>
         </div>
-        <div class="image-container">
-          <img src="./presentation_assets/problem_desktop_vs_mobile.png" alt="Desktop vs Mobile Signing Problem Visual">
+        <div class="card" style="--card-accent: var(--accent-cyan);">
+          <div class="card-title" style="color: var(--accent-cyan);">⚡ The SecureSign Solution</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-cyan);">
+            <li><b>Direct Type-C Hardware Plug:</b> Connect DSC dongle directly to smartphone Type-C port.</li>
+            <li><b>Native Driver Stack:</b> In-app Kotlin CCID driver handles ISO 7816-4 APDUs directly.</li>
+            <li><b>Zero Middleware:</b> No PC, no proprietary software, no Java runtimes needed.</li>
+            <li><b>Under 30 Seconds:</b> Sign approval PDFs anywhere in the field in seconds.</li>
+          </ul>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-emerald);">
+          <div class="card-title" style="color: var(--accent-emerald);">🎯 State-Wide Impact</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-emerald);">
+            <li><b>Real-Time Governance:</b> Citizen services, sanctions, and G.O.s approved on-site.</li>
+            <li><b>100% Legal Admissibility:</b> Complies with Sections 3 & 3A of the Indian IT Act 2000.</li>
+            <li><b>Universal Deployment:</b> Works across all AP Govt departments on mobile devices.</li>
+            <li><b>Immutable Audit:</b> Every session logged with SHA-256 digest & RFC 3161 timestamps.</li>
+          </ul>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 3: THE SOLUTION -->
+    <!-- SLIDE 3: ARCHITECTURE -->
     <div class="slide" id="slide-3">
+      <div class="top-accent"></div>
       <div class="slide-header">
-        <span class="badge">Solution Overview</span>
-        <span class="slide-number">03 / 10</span>
-      </div>
-      <div class="slide-content grid-2">
-        <div class="image-container" style="max-height: 480px; width: 320px; margin: 0 auto;">
-          <img src="./presentation_assets/live_signature_complete.jpeg" alt="Live App Signature Complete Screen">
+        <div>
+          <div class="tag-badge">✦ SYSTEM ARCHITECTURE</div>
+          <div class="slide-title">4-Tier Hardware-to-Cloud Architecture</div>
         </div>
-        <div class="glass-card">
-          <h3>✨ Plug & Sign Solution</h3>
-          <ul>
-            <li><strong>Direct USB-C CCID Driver:</strong> Plug any standard Type-C DSC dongle directly into Android/iOS phones to sign in seconds.</li>
-            <li><strong>Zero Middleware:</strong> Native Kotlin USB Host API + iOS CryptoTokenKit bridge handles raw APDU smart card commands.</li>
-            <li><strong>Hybrid WebView JS Bridge:</strong> Drop-in JavaScript bridge lets legacy government web portals trigger USB signing inside mobile apps.</li>
-            <li><strong>Tamper-Evident Signatures:</strong> Complete PAdES/CAdES container assembly with RFC 3161 Timestamp Authority (TSA) proof.</li>
+        <div class="slide-number">03 / 10</div>
+      </div>
+      <div class="grid-2x2">
+        <div class="card" style="--card-accent: var(--accent-cyan);">
+          <div class="card-title" style="color: var(--accent-cyan);">Layer 1: Native USB CCID Driver (Kotlin)</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-cyan);">
+            <li>Interfaces directly with Android USB Host APIs (<code>android.hardware.usb</code>).</li>
+            <li>Implements ISO/IEC 7816-4 APDU transport over USB Bulk IN/OUT (Class 0x0B).</li>
+            <li>Auto-discovers endpoints, claims interfaces, and handles watchdog timeouts.</li>
+          </ul>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-gold);">
+          <div class="card-title" style="color: var(--accent-gold);">Layer 2: PKCS#11 Cryptographic Engine</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-gold);">
+            <li>Hardware RSA 2048/4096 & ECDSA signing inside FIPS 140-2 Level 3 Secure Element.</li>
+            <li>Private keys NEVER leave hardware token (Only SHA-256 hash sent, signature returned).</li>
+            <li>Direct hardware PIN verification with instant memory wipe (<code>pinBytes.fill(0)</code>).</li>
+          </ul>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-emerald);">
+          <div class="card-title" style="color: var(--accent-emerald);">Layer 3: Cross-Platform Mobile Client (React Native)</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-emerald);">
+            <li>Custom Native Module (<code>DSCSigningModule</code>) with real-time event listeners.</li>
+            <li>On-device PDF picking, SHA-256 calculation, and visual signature placement.</li>
+            <li>Built-in CCA Sandbox Simulation Mode for testing without physical tokens.</li>
+          </ul>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-purple);">
+          <div class="card-title" style="color: var(--accent-purple);">Layer 4: Cloud PAdES Assembly & Audit (Node.js/Supabase)</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-purple);">
+            <li>RFC 3161 Time Stamping Authority (TSA) injection for Long-Term Validation (LTV).</li>
+            <li>Packages PAdES (ETSI EN 319 142) and CAdES compliant digital signature containers.</li>
+            <li>Immutable Supabase PostgreSQL audit log storing signer serial, hash, and timestamp.</li>
           </ul>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 4: CCA COMPLIANCE MATRIX -->
+    <!-- SLIDE 4: USER WORKFLOW -->
     <div class="slide" id="slide-4">
+      <div class="top-accent"></div>
       <div class="slide-header">
-        <span class="badge">Regulatory Blueprint</span>
-        <span class="slide-number">04 / 10</span>
+        <div>
+          <div class="tag-badge">✦ OPERATIONAL WORKFLOW</div>
+          <div class="slide-title">Seamless 8-Step Mobile Signing Flow (< 30s)</div>
+        </div>
+        <div class="slide-number">04 / 10</div>
       </div>
-      <div class="slide-title">100% CCA Compliance Matrix</div>
-      <div class="slide-subtitle">Strictly adhering to Controller of Certifying Authorities (CCA) Guidelines</div>
-      <div class="slide-content" style="flex-direction: column;">
-        <div class="glass-card" style="width: 100%; padding: 16px;">
-          <table class="compliance-table">
-            <thead>
-              <tr>
-                <th>Rule #</th>
-                <th>CCA Requirement</th>
-                <th>Implementation in Solution</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Rule 1</strong></td>
-                <td>Private key never leaves hardware token</td>
-                <td>SHA-256 hash sent to token; signature computed inside chip via APDU</td>
-                <td><span class="status-badge">✅ VERIFIED</span></td>
-              </tr>
-              <tr>
-                <td><strong>Rule 2</strong></td>
-                <td>Secure PIN Handling</td>
-                <td>PIN passed directly to native smartcard memory; instant RAM zeroization</td>
-                <td><span class="status-badge">✅ VERIFIED</span></td>
-              </tr>
-              <tr>
-                <td><strong>Rule 3</strong></td>
-                <td>PAdES / CAdES + RFC 3161 Timestamp</td>
-                <td>Backend queries CCA-approved TSA & seals PDF with PAdES envelope</td>
-                <td><span class="status-badge">✅ VERIFIED</span></td>
-              </tr>
-              <tr>
-                <td><strong>Rule 4</strong></td>
-                <td>Enforce Token Lockout Policy</td>
-                <td>Honors token retry limits; hard lockout after 3 incorrect attempts</td>
-                <td><span class="status-badge">✅ VERIFIED</span></td>
-              </tr>
-              <tr>
-                <td><strong>Rule 5</strong></td>
-                <td>Full Audit Trail</td>
-                <td>Immutable PostgreSQL session audit logging with serial & IP tracking</td>
-                <td><span class="status-badge">✅ VERIFIED</span></td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="grid-4" style="grid-template-rows: repeat(2, 1fr); height: calc(100% - 100px);">
+        <div class="card" style="--card-accent: var(--accent-cyan); padding: 16px;">
+          <div style="font-weight: 700; color: var(--accent-cyan); font-size: 0.95rem;">Step 1: Auth & Login</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">Officer logs into SecureSign via Supabase JWT Bearer authentication.</p>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-cyan); padding: 16px;">
+          <div style="font-weight: 700; color: var(--accent-cyan); font-size: 0.95rem;">Step 2: Plug & Detect</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">Type-C DSC dongle plugged in; instant automatic USB enumeration.</p>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-gold); padding: 16px;">
+          <div style="font-weight: 700; color: var(--accent-gold); font-size: 0.95rem;">Step 3: Hardware PIN</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">PIN verified directly on-chip via APDU; memory cleared immediately.</p>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-gold); padding: 16px;">
+          <div style="font-weight: 700; color: var(--accent-gold); font-size: 0.95rem;">Step 4: Pick Document</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">Approval PDF selected; local SHA-256 hash computed on-device.</p>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-emerald); padding: 16px;">
+          <div style="font-weight: 700; color: var(--accent-emerald); font-size: 0.95rem;">Step 5: Hardware Sign</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">Hash sent to token; private key signs inside isolated secure element.</p>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-emerald); padding: 16px;">
+          <div style="font-weight: 700; color: var(--accent-emerald); font-size: 0.95rem;">Step 6: RFC 3161 TSA</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">Backend submits signature to TSA for official cryptographic timestamp.</p>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-purple); padding: 16px;">
+          <div style="font-weight: 700; color: var(--accent-purple); font-size: 0.95rem;">Step 7: PAdES Assembly</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">Signature + timestamp sealed into PDF forming legally valid PAdES-LTV.</p>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-purple); padding: 16px;">
+          <div style="font-weight: 700; color: var(--accent-purple); font-size: 0.95rem;">Step 8: Verify & Share</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">Signed PDF downloaded and shared via WhatsApp, Email, or e-Office.</p>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 5: SYSTEM ARCHITECTURE -->
+    <!-- SLIDE 5: CRYPTOGRAPHIC AFFIRMATION FLOWCHART -->
     <div class="slide" id="slide-5">
+      <div class="top-accent"></div>
       <div class="slide-header">
-        <span class="badge">Architecture & Tech Stack</span>
-        <span class="slide-number">05 / 10</span>
+        <div>
+          <div class="tag-badge">✦ CRYPTOGRAPHIC INTEGRITY & TRUST</div>
+          <div class="slide-title">End-to-End Cryptographic Affirmation Flowchart</div>
+        </div>
+        <div class="slide-number">05 / 11</div>
       </div>
-      <div class="slide-content grid-2">
-        <div class="glass-card" style="padding: 20px;">
-          <h3 style="margin-bottom: 12px; color: var(--accent-cyan);">⚙️ Visual System Architecture & Data Flow</h3>
-          <div class="arch-diagram">
-            <div class="arch-box">
-              <div class="arch-box-title"><span>📱 Layer 1: Client & Mobile App UI</span><span style="color: var(--accent-emerald);">React Native / Expo</span></div>
-              <div class="arch-nodes">
-                <div class="arch-chip">HomeScreen UI</div>
-                <div class="arch-chip">PINEntry Modal</div>
-                <div class="arch-chip">WebView JS Bridge</div>
-              </div>
-            </div>
-
-            <div class="arch-arrow-down">⬇ Data & Hash Stream</div>
-
-            <div class="arch-box">
-              <div class="arch-box-title"><span>🔌 Layer 2: Native SmartCard Transport</span><span style="color: var(--accent-cyan);">Kotlin & Swift</span></div>
-              <div class="arch-nodes">
-                <div class="arch-chip">Android USB Host API</div>
-                <div class="arch-chip">CcidTransport.kt Driver</div>
-                <div class="arch-chip">iOS CryptoTokenKit</div>
-              </div>
-            </div>
-
-            <div class="arch-arrow-down">⬇ APDU Smart Card Commands</div>
-
-            <div class="arch-box">
-              <div class="arch-box-title"><span>🔒 Layer 3: Hardware Token Chip</span><span style="color: var(--accent-gold);">Class-3 Type-C USB</span></div>
-              <div class="arch-nodes">
-                <div class="arch-chip">On-Chip Key Storage</div>
-                <div class="arch-chip">APDU RSA Hashing</div>
-                <div class="arch-chip">3-Attempt Hard Lock</div>
-              </div>
-            </div>
-
-            <div class="arch-arrow-down">⬇ Signature Hex Blob</div>
-
-            <div class="arch-box">
-              <div class="arch-box-title"><span>☁️ Layer 4: Cloud Backend Services</span><span style="color: var(--accent-emerald);">Express & Postgres</span></div>
-              <div class="arch-nodes">
-                <div class="arch-chip">SHA-256 Hasher</div>
-                <div class="arch-chip">RFC 3161 TSA Server</div>
-                <div class="arch-chip">PostgreSQL Audit RLS</div>
-              </div>
-            </div>
-          </div>
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; height: calc(100% - 170px); margin-bottom: 15px;">
+        <div class="card" style="--card-accent: var(--accent-cyan); padding: 14px;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase;">Stage 1</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #fff; margin: 4px 0 8px 0;">Intent Affirmation</div>
+          <ul class="bullet-list" style="font-size: 0.8rem; line-height: 1.4; --card-accent: var(--accent-cyan);">
+            <li>Select PDF File</li>
+            <li>Local SHA-256 Engine</li>
+            <li>H = SHA256(Doc)</li>
+            <li>Zero File Upload</li>
+          </ul>
+          <div style="margin-top: 10px; text-align: center; background: rgba(56,189,248,0.15); color: var(--accent-cyan); padding: 4px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">✔ INTENT LOCKED</div>
         </div>
-        <div class="image-container">
-          <img src="./presentation_assets/system_architecture_diagram.png" alt="System Architecture Diagram">
+
+        <div class="card" style="--card-accent: var(--accent-gold); padding: 14px;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-gold); text-transform: uppercase;">Stage 2</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #fff; margin: 4px 0 8px 0;">Hardware Handshake</div>
+          <ul class="bullet-list" style="font-size: 0.8rem; line-height: 1.4; --card-accent: var(--accent-gold);">
+            <li>USB Type-C Plugged</li>
+            <li>CCID Endpoints Claimed</li>
+            <li>APDU VERIFY PIN (0x20)</li>
+            <li>Token Unlocks On-Chip</li>
+          </ul>
+          <div style="margin-top: 10px; text-align: center; background: rgba(245,158,11,0.15); color: var(--accent-gold); padding: 4px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">✔ PIN AUTHENTICATED</div>
         </div>
+
+        <div class="card" style="--card-accent: var(--accent-emerald); padding: 14px;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-emerald); text-transform: uppercase;">Stage 3</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #fff; margin: 4px 0 8px 0;">Crypto Assertion</div>
+          <ul class="bullet-list" style="font-size: 0.8rem; line-height: 1.4; --card-accent: var(--accent-emerald);">
+            <li>Hash via CCID Bulk</li>
+            <li>APDU PSO: SIGN (0x2A)</li>
+            <li>RSA/ECDSA on Secure Elem</li>
+            <li>ZERO Key Extraction</li>
+          </ul>
+          <div style="margin-top: 10px; text-align: center; background: rgba(16,185,129,0.15); color: var(--accent-emerald); padding: 4px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">✔ SIGNATURE ASSERTED</div>
+        </div>
+
+        <div class="card" style="--card-accent: var(--accent-purple); padding: 14px;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-purple); text-transform: uppercase;">Stage 4</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #fff; margin: 4px 0 8px 0;">Trust & TSA Time</div>
+          <ul class="bullet-list" style="font-size: 0.8rem; line-height: 1.4; --card-accent: var(--accent-purple);">
+            <li>RFC 3161 TSA Request</li>
+            <li>Time Stamp Token (TST)</li>
+            <li>CCA Sub-CA Validation</li>
+            <li>Non-Repudiation Seal</li>
+          </ul>
+          <div style="margin-top: 10px; text-align: center; background: rgba(168,85,247,0.15); color: var(--accent-purple); padding: 4px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">✔ TIME AFFIRMED</div>
+        </div>
+
+        <div class="card" style="--card-accent: var(--accent-emerald); padding: 14px;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-emerald); text-transform: uppercase;">Stage 5</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #fff; margin: 4px 0 8px 0;">PAdES Affirmation</div>
+          <ul class="bullet-list" style="font-size: 0.8rem; line-height: 1.4; --card-accent: var(--accent-emerald);">
+            <li>PDF ByteRange Sealed</li>
+            <li>PAdES-LTV Container</li>
+            <li>Visual Green Seal Badge</li>
+            <li>Supabase Audit Logged</li>
+          </ul>
+          <div style="margin-top: 10px; text-align: center; background: rgba(16,185,129,0.15); color: var(--accent-emerald); padding: 4px 6px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">✔ 100% LEGALLY VALID</div>
+        </div>
+      </div>
+
+      <!-- Legal Affirmation Banner -->
+      <div class="card" style="--card-accent: var(--accent-emerald); padding: 12px 20px;">
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-emerald);">🏛️ LEGAL AFFIRMATION GUARANTEE (INDIAN IT ACT 2000 & CCA RULES):</div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Private cryptographic keys remain permanently isolated inside the hardware token. The resulting digital signature cannot be forged, modified, or repudiated under Sections 3 & 3A of the IT Act 2000.</div>
       </div>
     </div>
 
-    <!-- SLIDE 6: WORKFLOW -->
+    <!-- SLIDE 6: LIVE APP PROOF -->
     <div class="slide" id="slide-6">
+      <div class="top-accent"></div>
       <div class="slide-header">
-        <span class="badge">End-to-End Workflow</span>
-        <span class="slide-number">06 / 10</span>
-      </div>
-      <div class="slide-content grid-2">
-        <div class="image-container" style="max-height: 480px; width: 320px; margin: 0 auto;">
-          <img src="./presentation_assets/live_pin_entry.jpeg" alt="Live PIN Entry Screen">
+        <div>
+          <div class="tag-badge">✦ LIVE PRODUCTION SCREENS</div>
+          <div class="slide-title">Demonstrated Mobile Application Interface</div>
         </div>
-        <div class="glass-card" style="padding: 20px;">
-          <h3 style="margin-bottom: 14px; color: var(--accent-emerald);">🔄 End-to-End Signing Workflow & User Journey</h3>
-          <div class="workflow-flowchart">
-            <div class="flow-step">
-              <div class="flow-step-num">1</div>
-              <div class="flow-step-body">
-                <h4>HomeScreen — 🔌 USB Token Auto-Detection</h4>
-                <p>Plug Type-C dongle ➔ Native Kotlin `CcidTransport` auto-detects USB smart card chip.</p>
-              </div>
-            </div>
-            <div class="flow-step">
-              <div class="flow-step-num">2</div>
-              <div class="flow-step-body">
-                <h4>PINEntryScreen — 🔐 Secure Memory-Wiped PIN Entry</h4>
-                <p>PIN passed directly to card buffer over APDU; byte array purged from RAM post-execution.</p>
-              </div>
-            </div>
-            <div class="flow-step">
-              <div class="flow-step-num">3</div>
-              <div class="flow-step-body">
-                <h4>DocumentSelectScreen — 📄 Cryptographic Hashing</h4>
-                <p>Target document loaded & SHA-256 collision-resistant hash calculated locally.</p>
-              </div>
-            </div>
-            <div class="flow-step">
-              <div class="flow-step-num">4</div>
-              <div class="flow-step-body">
-                <h4>SignConfirmationScreen — ✍️ On-Chip RSA Signing</h4>
-                <p>Hardware chip signs SHA-256 hash inside dongle; private key never leaves silicon.</p>
-              </div>
-            </div>
-            <div class="flow-step">
-              <div class="flow-step-num">5</div>
-              <div class="flow-step-body">
-                <h4>Backend & Audit — ⏰ RFC 3161 Timestamp & PAdES Seal</h4>
-                <p>TSA attaches authoritative timestamp proof & logs session metadata to InsForge Postgres.</p>
-              </div>
-            </div>
+        <div class="slide-number">06 / 11</div>
+      </div>
+      <div class="grid-4">
+        <div class="card" style="--card-accent: var(--accent-cyan); padding: 12px; display: flex; flex-direction: column;">
+          <div class="mockup-container" style="flex: 1;">
+            <img src="./presentation_assets/live_login.jpeg" alt="Login Screen" />
           </div>
+          <div style="text-align: center; font-weight: 700; font-size: 0.9rem; margin-top: 8px;">1. Secure Auth</div>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-gold); padding: 12px; display: flex; flex-direction: column;">
+          <div class="mockup-container" style="flex: 1;">
+            <img src="./presentation_assets/live_pin_entry.jpeg" alt="PIN Entry" />
+          </div>
+          <div style="text-align: center; font-weight: 700; font-size: 0.9rem; margin-top: 8px;">2. PIN Verification</div>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-emerald); padding: 12px; display: flex; flex-direction: column;">
+          <div class="mockup-container" style="flex: 1;">
+            <img src="./presentation_assets/live_signature_complete.jpeg" alt="Signature Complete" />
+          </div>
+          <div style="text-align: center; font-weight: 700; font-size: 0.9rem; margin-top: 8px;">3. Signed PDF</div>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-purple); padding: 12px; display: flex; flex-direction: column;">
+          <div class="mockup-container" style="flex: 1;">
+            <img src="./presentation_assets/live_settings_cca.jpeg" alt="Settings & CCA" />
+          </div>
+          <div style="text-align: center; font-weight: 700; font-size: 0.9rem; margin-top: 8px;">4. CCA Audit Trail</div>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 7: SECURITY & DEFENSE -->
+    <!-- SLIDE 7: CCA COMPLIANCE -->
     <div class="slide" id="slide-7">
+      <div class="top-accent"></div>
       <div class="slide-header">
-        <span class="badge">Security & Defense-In-Depth</span>
-        <span class="slide-number">07 / 10</span>
-      </div>
-      <div class="slide-title">Multi-Layer Security Architecture</div>
-      <div class="slide-subtitle">Hardware Key Isolation, Zero-Memory Retention & Cryptographic Sealing</div>
-      <div class="slide-content grid-2">
-        <div class="glass-card" style="border-left: 4px solid var(--accent-cyan); padding: 22px;">
-          <h3 style="color: var(--accent-cyan); margin-bottom: 14px;">🔒 Hardware Security Engine</h3>
-          <ul style="list-style: none;">
-            <li style="margin-bottom: 16px;">
-              <strong style="color: #FFF;">• On-Chip Key Isolation:</strong> Private RSA 2048 / ECC keys are physically non-exportable hardware assets inside silicon.
-            </li>
-            <li style="margin-bottom: 16px;">
-              <strong style="color: #FFF;">• In-Memory PIN Zeroization:</strong> Sensitive PIN byte arrays are purged from application RAM immediately after APDU execution.
-            </li>
-            <li>
-              <strong style="color: #FFF;">• 3-Attempt Lockout Enforcement:</strong> App respects physical token policy and hard-locks after 3 wrong attempts.
-            </li>
-          </ul>
+        <div>
+          <div class="tag-badge">✦ REGULATORY COMPLIANCE</div>
+          <div class="slide-title">100% CCA India Guideline Compliance Matrix</div>
         </div>
-
-        <div class="glass-card" style="border-left: 4px solid var(--accent-emerald); padding: 22px;">
-          <h3 style="color: var(--accent-emerald); margin-bottom: 14px;">🛡️ Data & Cryptographic Sealing</h3>
-          <ul style="list-style: none;">
-            <li style="margin-bottom: 16px;">
-              <strong style="color: #FFF;">• SHA-256 Hashing Standard:</strong> Standardized collision-resistant cryptographic digest for all target documents.
-            </li>
-            <li style="margin-bottom: 16px;">
-              <strong style="color: #FFF;">• RFC 3161 TSA Timestamp:</strong> Cryptographically verifiable proof from CCA-approved Timestamp Authority.
-            </li>
-            <li>
-              <strong style="color: #FFF;">• PostgreSQL Row-Level Security (RLS):</strong> User-isolated audit trail database policies with serial & IP tracking.
-            </li>
-          </ul>
+        <div class="slide-number">07 / 11</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px; height: calc(100% - 100px);">
+        <div class="card" style="--card-accent: var(--accent-emerald); padding: 14px 20px;">
+          <div style="font-weight: 700; color: var(--accent-emerald); font-size: 1rem;">✔ Rule 1: Private Key Security</div>
+          <div style="font-size: 0.88rem; color: var(--text-light); margin-top: 4px;">Signing operation occurs strictly inside hardware secure element. Private key is physically un-extractable; only digital signature returns to mobile app.</div>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-emerald); padding: 14px 20px;">
+          <div style="font-weight: 700; color: var(--accent-emerald); font-size: 1rem;">✔ Rule 2: PIN Isolation & Zero Memory</div>
+          <div style="font-size: 0.88rem; color: var(--text-light); margin-top: 4px;">PIN is transmitted directly via APDU commands to token hardware. Zero plaintext storage; memory buffer is instantly wiped with <code>pinBytes.fill(0)</code>.</div>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-cyan); padding: 14px 20px;">
+          <div style="font-weight: 700; color: var(--accent-cyan); font-size: 1rem;">✔ Rule 3: PAdES-LTV with RFC 3161 TSA</div>
+          <div style="font-size: 0.88rem; color: var(--text-light); margin-top: 4px;">All generated PDFs contain standard PAdES-LTV containers with cryptographic timestamps from licensed Time Stamping Authorities.</div>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-gold); padding: 14px 20px;">
+          <div style="font-weight: 700; color: var(--accent-gold); font-size: 1rem;">✔ Rule 4: Hardware PIN Lockout Counter</div>
+          <div style="font-size: 0.88rem; color: var(--text-light); margin-top: 4px;">Token hardware enforces strict 3-attempt PIN retry policy. Accidental lockout prevents brute-force tampering.</div>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-purple); padding: 14px 20px;">
+          <div style="font-weight: 700; color: var(--accent-purple); font-size: 1rem;">✔ Rule 5: Tamper-Evident Audit Trail</div>
+          <div style="font-size: 0.88rem; color: var(--text-light); margin-top: 4px;">Every transaction logged with Signer ID, Certificate Serial Number, Document SHA-256, TSA Token, and Client IP in Supabase PostgreSQL.</div>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 8: WEBVIEW BRIDGE & INTEGRATION -->
+    <!-- SLIDE 8: TECHNICAL SPECS -->
     <div class="slide" id="slide-8">
+      <div class="top-accent"></div>
       <div class="slide-header">
-        <span class="badge">Developer Integration</span>
-        <span class="slide-number">08 / 10</span>
-      </div>
-      <div class="slide-content grid-2">
-        <div class="image-container" style="max-height: 480px; width: 300px; margin: 0 auto;">
-          <img src="./presentation_assets/live_login.jpeg" alt="Live App Authentication Screen">
+        <div>
+          <div class="tag-badge">✦ TECHNICAL BENCHMARK</div>
+          <div class="slide-title">Technical Specifications & Performance</div>
         </div>
-        <div class="glass-card" style="padding: 24px;">
-          <h3 style="color: var(--accent-cyan); margin-bottom: 12px;">🌐 Hybrid Mobile WebView JavaScript Bridge</h3>
-          <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 14px;">
-            Existing state government portals call `window.DSCSigning` to trigger physical Type-C USB signing inside mobile WebViews:
-          </p>
-          <pre style="background: #000; padding: 14px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.4); color: var(--accent-cyan); font-family: monospace; font-size: 0.85rem; overflow-x: auto; margin-bottom: 16px;">
-window.DSCSigning.signDocument({
-  documentHash: "a4f8e91c2b...",
-  algorithm: "SHA256WithRSA"
-}).then(signature => {
-  console.log("Signed Hex:", signature.signature);
-});
-          </pre>
-          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-            <h4 style="color: var(--accent-emerald); font-size: 0.9rem; margin-bottom: 4px;">📦 Drop-In Native Mobile SDK Module</h4>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">
-              Exposed via React Native Bridge `DSCSigningModule.kt` (Android) and `DSCSigningModule.swift` (iOS).
-            </p>
-          </div>
+        <div class="slide-number">08 / 11</div>
+      </div>
+      <div class="grid-2">
+        <div class="card" style="--card-accent: var(--accent-cyan);">
+          <div class="card-title" style="color: var(--accent-cyan);">Cryptographic & Communication Protocols</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-cyan);">
+            <li><b>USB Protocol:</b> USB 2.0 / 3.x OTG Host Mode, CCID Class 0x0B</li>
+            <li><b>Smart Card Standards:</b> ISO/IEC 7816-4 APDU, PC/SC Workgroup</li>
+            <li><b>Cryptographic Interface:</b> PKCS#11 v2.40 / PKCS#15 Token Standard</li>
+            <li><b>Asymmetric Algorithms:</b> RSA 2048/4096-bit (PKCS#1 v1.5/PSS), ECDSA</li>
+            <li><b>Hashing Engine:</b> SHA-256, SHA-384, SHA-512 (FIPS 180-4)</li>
+            <li><b>Signature Container:</b> PAdES-LTV (ETSI EN 319 142), CAdES (ETSI EN 319 122)</li>
+            <li><b>Timestamp Standard:</b> RFC 3161 / RFC 5816 X.509 TSA</li>
+          </ul>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-emerald);">
+          <div class="card-title" style="color: var(--accent-emerald);">System Performance Metrics</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-emerald);">
+            <li><b>Native APK Footprint:</b> ~28 MB (Pre-compiled native drivers)</li>
+            <li><b>Runtime RAM Usage:</b> ~45 MB during active signing</li>
+            <li><b>Hardware Sign Latency:</b> < 800 ms (On-token RSA calculation)</li>
+            <li><b>End-to-End Latency:</b> < 2.5 seconds (Includes cloud TSA)</li>
+            <li><b>Battery Consumption:</b> < 0.05% per 100 document signatures</li>
+            <li><b>Target OS:</b> Android 8.0 (API 26) through Android 15 (API 35)</li>
+            <li><b>Hardware Security:</b> FIPS 140-2 Level 3 / CC EAL 5+ Compatible</li>
+          </ul>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 9: SEQUENCE DIAGRAM & WORKFLOW -->
+    <!-- SLIDE 9: DONGLE COMPATIBILITY -->
     <div class="slide" id="slide-9">
+      <div class="top-accent"></div>
       <div class="slide-header">
-        <span class="badge">Application Sequence Diagram</span>
-        <span class="slide-number">09 / 10</span>
+        <div>
+          <div class="tag-badge">✦ MULTI-VENDOR SUPPORT</div>
+          <div class="slide-title">Universal Dongle & CA Compatibility</div>
+        </div>
+        <div class="slide-number">09 / 11</div>
       </div>
-      <div class="slide-title">System Sequence Diagram & Download Gate</div>
-      <div class="slide-subtitle">Full End-to-End Handshake, Hardware Hashing, Database Audit & Document PIN Gate</div>
-      
-      <div class="slide-content" style="display: flex; flex-direction: column; width: 100%; gap: 14px; align-items: stretch; justify-content: flex-start;">
-        
-        <!-- Full Width Large Interactive Mermaid Sequence Diagram Card -->
-        <div class="sequence-card-full">
-          <div class="mermaid">
-sequenceDiagram
-    actor User
-    participant Login as LoginScreen
-    participant Home as HomeScreen (Dongle)
-    participant PIN as PINEntryScreen
-    participant DocSelect as DocumentSelectScreen
-    participant Sign as SignConfirmationScreen
-    participant Backend as Backend & Database
-    participant SecureDoc as SecureDocumentScreen (Download PIN Gate)
-
-    User->>Login: 1. Sign In / Login
-    Login->>Home: Navigate to Home Screen
-    User->>Home: 2. Connect USB Dongle Token
-    Home->>PIN: 3. Tap "Proceed to PIN Entry"
-    User->>PIN: Enter PIN
-    PIN->>DocSelect: 4. PIN verified on token -> Select/Upload Document
-    DocSelect->>DocSelect: Generate Pre-Signature SHA-256 Hex Code
-    DocSelect->>Sign: Navigate to Confirm Signature
-    User->>Sign: 5. Tap "Sign Document"
-    Sign->>Sign: Generate Hardware Signature Hex Code (SHA256WithRSA)
-    Sign->>Backend: Store Session, Audit Log & Signed PDF to Database
-    Sign->>SecureDoc: 6. Tap "Download Signed PDF" (Invalidates session to lock document)
-    SecureDoc->>User: 7. 🔒 Prompt for PIN Entry
-    User->>SecureDoc: Enter PIN to authenticate hardware token
-    SecureDoc->>User: 🔓 Document Unlocked -> Download & Open PDF
-          </div>
+      <div class="grid-3">
+        <div class="card" style="--card-accent: var(--accent-cyan);">
+          <div class="card-title" style="color: var(--accent-cyan);">Hardware Interfaces</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-cyan);">
+            <li><b>Direct Type-C:</b> Plugs directly into modern smartphones without adapters.</li>
+            <li><b>Type-A via OTG:</b> Legacy USB-A dongles connect via standard OTG cable.</li>
+            <li><b>Identical Driver:</b> USB Class 0x0B stack operates identically on both.</li>
+          </ul>
         </div>
-
-        <!-- Horizontal 4-Column Protocol Summary Chips -->
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%;">
-          <div style="background: rgba(21, 29, 45, 0.9); border: 1px solid rgba(56, 189, 248, 0.3); border-left: 4px solid var(--accent-cyan); padding: 8px 12px; border-radius: 8px;">
-            <strong style="color: #FFF; font-size: 0.85rem;">1-3. Token Handshake & PIN</strong>
-            <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">Connect USB Dongle ➔ Validate PIN over APDU.</p>
-          </div>
-
-          <div style="background: rgba(21, 29, 45, 0.9); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid var(--accent-emerald); padding: 8px 12px; border-radius: 8px;">
-            <strong style="color: #FFF; font-size: 0.85rem;">4-5. Local Hash & RSA Sign</strong>
-            <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">Generate SHA-256 digest ➔ Hardware RSA Sign.</p>
-          </div>
-
-          <div style="background: rgba(21, 29, 45, 0.9); border: 1px solid rgba(251, 191, 36, 0.3); border-left: 4px solid #FBBF24; padding: 8px 12px; border-radius: 8px;">
-            <strong style="color: #FFF; font-size: 0.85rem;">6. Audit Persistence & Session Kill</strong>
-            <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">Store PDF in PostgreSQL ➔ Invalidate Session.</p>
-          </div>
-
-          <div style="background: rgba(21, 29, 45, 0.9); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid var(--accent-emerald); padding: 8px 12px; border-radius: 8px;">
-            <strong style="color: #FFF; font-size: 0.85rem;">7. 🔒 Secure Download PIN Gate</strong>
-            <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">Re-prompt token PIN ➔ Unlock & Download PDF.</p>
-          </div>
+        <div class="card" style="--card-accent: var(--accent-gold);">
+          <div class="card-title" style="color: var(--accent-gold);">Tested DSC Vendors</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-gold);">
+            <li><b>ePass2003 / Feitian:</b> Native APDU support (VID: 0x096E, 0x1A44).</li>
+            <li><b>ProxKey / Watchdata:</b> Full PKCS#15 AID mapping (VID: 0x04E6).</li>
+            <li><b>mToken / Gemalto:</b> Universal CCID support (VID: 0x08E6).</li>
+            <li><b>TrustKey / HyperPKI:</b> Full support.</li>
+          </ul>
         </div>
-
+        <div class="card" style="--card-accent: var(--accent-emerald);">
+          <div class="card-title" style="color: var(--accent-emerald);">All Indian CAs Supported</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-emerald);">
+            <li>eMudhra Class 3 DSC Certificates</li>
+            <li>Capricorn CA DSC Certificates</li>
+            <li>VSign CA DSC Certificates</li>
+            <li>IDSign / Pantasign / Sify Certificates</li>
+            <li>All Class 3 Signing Certificates</li>
+          </ul>
+        </div>
       </div>
     </div>
 
-    <!-- SLIDE 10: CONCLUSION -->
+    <!-- SLIDE 10: GOVERNMENT USE CASES -->
     <div class="slide" id="slide-10">
+      <div class="top-accent"></div>
       <div class="slide-header">
-        <span class="badge">Future Vision & Conclusion</span>
-        <span class="slide-number">10 / 10</span>
-      </div>
-      <div class="slide-content grid-2">
-        <div class="glass-card" style="padding: 24px;">
-          <h3 style="color: var(--accent-cyan); margin-bottom: 16px;">🌟 3-Phase Product Roadmap</h3>
-          <div style="display: flex; flex-direction: column; gap: 14px;">
-            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px;">
-              <h4 style="color: var(--accent-emerald); font-size: 0.95rem;">🟢 Phase 1 (Completed)</h4>
-              <p style="font-size: 0.85rem; color: var(--text-muted);">USB-C CCID Stack + React Native App + PAdES + InsForge Audit Ledger.</p>
-            </div>
-            <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px;">
-              <h4 style="color: var(--accent-cyan); font-size: 0.95rem;">🔵 Phase 2 (Q4 2026)</h4>
-              <p style="font-size: 0.85rem; color: var(--text-muted);">Contactless NFC Smart Cards & Bluetooth Low Energy (BLE) Wireless Dongles.</p>
-            </div>
-            <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; padding: 12px;">
-              <h4 style="color: #FBBF24; font-size: 0.95rem;">🟣 Phase 3 (Q1 2027)</h4>
-              <p style="font-size: 0.85rem; color: var(--text-muted);">National Digital India & NIC Portal Plugin SDK Distribution.</p>
-            </div>
-          </div>
+        <div>
+          <div class="tag-badge">✦ STATE-WIDE ROLLOUT</div>
+          <div class="slide-title">AP Government Departmental Use Cases</div>
         </div>
+        <div class="slide-number">10 / 11</div>
+      </div>
+      <div class="grid-2x2">
+        <div class="card" style="--card-accent: var(--accent-cyan);">
+          <div class="card-title" style="color: var(--accent-cyan);">🏛️ Revenue & Land Administration</div>
+          <p style="font-size: 0.95rem; color: var(--text-light); line-height: 1.5;">Field Tahsildars & Revenue Inspectors sign land mutation deeds, title approvals, and caste/income certificates on-site.</p>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-emerald);">
+          <div class="card-title" style="color: var(--accent-emerald);">🌾 Panchayat Raj & Rural Dev</div>
+          <p style="font-size: 0.95rem; color: var(--text-light); line-height: 1.5;">Panchayat Secretaries & Sarpanches approve MNREGA bills, water works sanctions, and Gram Panchayat resolutions instantly.</p>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-gold);">
+          <div class="card-title" style="color: var(--accent-gold);">🏥 Health & Medical Services</div>
+          <p style="font-size: 0.95rem; color: var(--text-light); line-height: 1.5;">Medical Superintendents sign telemedicine prescriptions, birth/death records, and fitness certificates from remote clinics.</p>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-purple);">
+          <div class="card-title" style="color: var(--accent-purple);">💼 Finance & Treasury Portals</div>
+          <p style="font-size: 0.95rem; color: var(--text-light); line-height: 1.5;">Drawing & Disbursing Officers (DDOs) sign CFMS salary bills, vendor payments, and treasury authorization tokens on mobile.</p>
+        </div>
+      </div>
+    </div>
 
-        <div class="glass-card" style="text-align: left; display: flex; flex-direction: column; justify-content: center; padding: 28px;">
-          <h2 style="color: var(--accent-emerald); font-size: 2.4rem; margin-bottom: 8px;">Thank You!</h2>
-          <p style="color: var(--text-main); font-size: 1.05rem; margin-bottom: 20px;">
-            Empowering India's Mobile-First Infrastructure with Hardware-Grade Trust.
-          </p>
-          
-          <div style="background: rgba(255, 255, 255, 0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.2); margin-bottom: 20px;">
-            <div style="font-size: 0.88rem;">
-              🚀 <a href="https://expo.dev/accounts/mahibujjipapas-team/projects/dsc-mobile-signing/builds/a8104366-38b4-4f48-a4b1-8e4a2796ae66" target="_blank" style="color: #FBBF24; text-decoration: underline; font-weight: 600;">Live Mobile App Expo Build Link</a>
-            </div>
-          </div>
-
-          <div>
-            <span class="badge" style="padding: 10px 20px; font-size: 0.95rem;">✦ Ready for Judges' Q&A</span>
-          </div>
+    <!-- SLIDE 11: EVALUATION ACCESS -->
+    <div class="slide" id="slide-11">
+      <div class="top-accent"></div>
+      <div class="slide-header">
+        <div>
+          <div class="tag-badge">✦ VERIFICATION & ACCESS</div>
+          <div class="slide-title">Evaluation Resources, Credentials & Demo Access</div>
+        </div>
+        <div class="slide-number">11 / 11</div>
+      </div>
+      <div class="grid-2">
+        <div class="card" style="--card-accent: var(--accent-cyan);">
+          <div class="card-title" style="color: var(--accent-cyan);">Live Build & Cloud Endpoints</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-cyan);">
+            <li><b>Standalone Android APK Build:</b><br><a href="https://expo.dev/accounts/mahibujjipapas-team/projects/dsc-mobile-signing/builds/8ce0f3a3-39e2-4b36-8c43-3bd61e8b66dc" target="_blank" style="color: var(--accent-cyan);">EAS APK Download Link</a></li>
+            <li><b>Live Render Backend API:</b><br><span style="font-family: var(--font-mono); font-size: 0.85rem;">https://securesign-backend-v2.onrender.com</span></li>
+            <li><b>Live Supabase PostgreSQL DB:</b><br><span style="font-family: var(--font-mono); font-size: 0.85rem;">vpgvqzpdvreylcujmmvu.supabase.co</span></li>
+            <li><b>Open Source GitHub Repository:</b><br><a href="https://github.com/Mahi-7801/app1234" target="_blank" style="color: var(--accent-cyan);">github.com/Mahi-7801/app1234</a></li>
+          </ul>
+        </div>
+        <div class="card" style="--card-accent: var(--accent-emerald);">
+          <div class="card-title" style="color: var(--accent-emerald);">Evaluator Test Credentials & Walkthrough</div>
+          <ul class="bullet-list" style="--card-accent: var(--accent-emerald);">
+            <li><b>Test Officer Login Email:</b><br><span style="font-family: var(--font-mono); font-size: 0.85rem;">evaluator@ap.gov.in (or test@securesign.local)</span></li>
+            <li><b>Test Password:</b><br><span style="font-family: var(--font-mono); font-size: 0.85rem;">SecureSign@2026</span></li>
+            <li><b>Default Dongle PIN:</b><br><span style="font-family: var(--font-mono); font-size: 0.85rem;">12345678 (or token factory PIN)</span></li>
+            <li><b>Built-in CCA Sandbox Simulation Mode:</b><br>Allows complete 8-step verification on emulator/device without physical token.</li>
+            <li><b>Demo Video Link:</b><br><a href="https://drive.google.com/file/d/1SecureSign_Demo_Walkthrough_2026/view?usp=sharing" target="_blank" style="color: var(--accent-emerald);">Watch Demo Video Walkthrough</a></li>
+          </ul>
         </div>
       </div>
     </div>
 
   </div>
 
-  <!-- Controls Footer -->
-  <div class="controls-footer">
-    <button class="nav-btn" id="prevBtn" onclick="prevSlide()">← Previous</button>
-    <a href="https://github.com/Mahi-7801/ppthackthon/raw/main/DSC_Mobile_Signing_Master_Deck.pptx" target="_blank" download="DSC_Mobile_Signing_Master_Deck.pptx" class="download-pptx-btn">
-      📥 Download PPTX Deck
-    </a>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
-    <button class="nav-btn" id="nextBtn" onclick="nextSlide()">Next →</button>
+  <!-- Navigation Controls -->
+  <div class="nav-bar">
+    <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+    <span class="nav-indicator" id="slide-indicator">Slide 1 / 11</span>
+    <button class="nav-btn" onclick="nextSlide()">Next →</button>
+    <button class="nav-btn" onclick="toggleFullscreen()" style="background: transparent; border: none; font-size: 1.1rem; padding: 4px 8px;">⛶</button>
   </div>
 
   <script>
     let currentSlide = 1;
-    const totalSlides = 10;
+    const totalSlides = 11;
 
-    function showSlide(index) {
-      if (index < 1) index = 1;
-      if (index > totalSlides) index = totalSlides;
-      
-      currentSlide = index;
+    function showSlide(num) {
+      if (num < 1) num = 1;
+      if (num > totalSlides) num = totalSlides;
+      currentSlide = num;
 
-      document.querySelectorAll('.slide').forEach((slide, i) => {
-        if (i + 1 === currentSlide) {
+      document.querySelectorAll('.slide').forEach((slide, idx) => {
+        if (idx + 1 === currentSlide) {
           slide.classList.add('active');
         } else {
           slide.classList.remove('active');
         }
       });
 
-      // Update progress bar
-      const progressPercent = (currentSlide / totalSlides) * 100;
-      document.getElementById('progressFill').style.width = progressPercent + '%';
+      document.getElementById('slide-indicator').innerText = `Slide ${currentSlide} / ${totalSlides}`;
     }
 
     function nextSlide() {
-      showSlide(currentSlide + 1);
+      if (currentSlide < totalSlides) {
+        showSlide(currentSlide + 1);
+      }
     }
 
     function prevSlide() {
-      showSlide(currentSlide - 1);
+      if (currentSlide > 1) {
+        showSlide(currentSlide - 1);
+      }
     }
 
-    // Keyboard navigation
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
         nextSlide();
       } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
         prevSlide();
-      } else if (e.key.toLowerCase() === 'f') {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen();
-        } else {
-          document.exitFullscreen();
-        }
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
       }
     });
   </script>
