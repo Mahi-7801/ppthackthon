@@ -166,22 +166,20 @@ const SignConfirmationScreen = () => {
       const docName = (document.name || 'Signed_Legal_Document.pdf').replace(/[^a-zA-Z0-9._-]/g, '_');
       const fileUri = `${FileSystem.cacheDirectory}${docName}`;
 
-      // If document was locally picked and URI exists, use local original PDF
-      if (document.uri) {
-        try {
-          const originalContent = await FileSystem.readAsStringAsync(document.uri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          await FileSystem.writeAsStringAsync(fileUri, originalContent, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-        } catch (localErr) {
-          if (assembleResult?.signedDocumentUrl) {
-            await FileSystem.downloadAsync(assembleResult.signedDocumentUrl, fileUri);
-          }
-        }
-      } else if (assembleResult?.signedDocumentUrl) {
-        await FileSystem.downloadAsync(assembleResult.signedDocumentUrl, fileUri);
+      // Download official signed PDF with visible CCA digital signature stamp
+      if (assembleResult?.signedDocumentUrl) {
+        const authToken = BackendService.getAuthToken();
+        const headers: Record<string, string> = {};
+        if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+
+        await FileSystem.downloadAsync(assembleResult.signedDocumentUrl, fileUri, { headers });
+      } else if (document.uri) {
+        const originalContent = await FileSystem.readAsStringAsync(document.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        await FileSystem.writeAsStringAsync(fileUri, originalContent, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
       }
 
       const isAvailable = await Sharing.isAvailableAsync();
