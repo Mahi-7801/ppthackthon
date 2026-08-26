@@ -64,13 +64,20 @@ const DocumentSelectScreen = () => {
   const handlePickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'],
+        type: 'application/pdf',
         copyToCacheDirectory: true,
       });
 
       if (result.canceled) return;
 
       const file = result.assets[0];
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        Alert.alert(
+          'PDF Document Required',
+          'PAdES (PDF Advanced Electronic Signatures) requires a PDF document. Please select a .pdf file.'
+        );
+        return;
+      }
       const fileInfo = await FileSystem.getInfoAsync(file.uri);
 
       const content = await FileSystem.readAsStringAsync(file.uri, {
