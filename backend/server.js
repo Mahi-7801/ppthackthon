@@ -343,8 +343,10 @@ app.post('/api/signup', rateLimit(60000, 10), async (req, res) => {
 
     const authToken = authData.session?.access_token || ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' + Buffer.from(JSON.stringify({ sub: authData.user.id, email, role: 'authenticated', exp: Math.floor(Date.now()/1000) + 86400 })).toString('base64url') + '.' + crypto.randomBytes(32).toString('hex'));
 
-    // Send asynchronous welcome email without blocking response
-    sendWelcomeEmail(email, full_name || email.split('@')[0]);
+    // Send welcome email with await
+    try {
+      await sendWelcomeEmail(email, full_name || email.split('@')[0]);
+    } catch (e) {}
 
     res.json({
       user: userProfile || { id: authData.user.id, email, full_name: full_name || '' },
@@ -355,8 +357,10 @@ app.post('/api/signup', rateLimit(60000, 10), async (req, res) => {
     const generatedUserId = crypto.randomUUID();
     const authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' + Buffer.from(JSON.stringify({ sub: generatedUserId, email, role: 'authenticated', exp: Math.floor(Date.now()/1000) + 86400 })).toString('base64url') + '.' + crypto.randomBytes(32).toString('hex');
     
-    // Send asynchronous welcome email
-    sendWelcomeEmail(email, full_name || email.split('@')[0]);
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(email, full_name || email.split('@')[0]);
+    } catch (e) {}
 
     res.json({
       user: { id: generatedUserId, email, full_name: full_name || email.split('@')[0] },
@@ -677,15 +681,17 @@ app.post('/api/assemble-signature', requireAuth, async (req, res) => {
     console.warn('[AssembleSignature] Supabase catch:', err.message);
   }
 
-  // Asynchronously dispatch signed document email notification
+  // Dispatch signed document email notification
   const userMail = req.user?.email || 'pmahi7801@gmail.com';
-  sendDocumentSignedEmail(userMail, {
-    docName: 'Signed_Legal_Document.pdf',
-    documentId,
-    signatureUrl: signedDocumentUrl,
-    hash: 'SHA256:Verified_CCA_PAdES',
-    timestamp,
-  });
+  try {
+    await sendDocumentSignedEmail(userMail, {
+      docName: 'Signed_Legal_Document.pdf',
+      documentId,
+      signatureUrl: signedDocumentUrl,
+      hash: 'SHA256:Verified_CCA_PAdES',
+      timestamp,
+    });
+  } catch (e) {}
 
   res.json({
     success: true,
@@ -919,8 +925,12 @@ app.post('/api/otp/send-download-otp', async (req, res) => {
   const key = `${targetEmail}_${documentId || 'any'}`;
   otpStore.set(key, { otp, expiresAt, verified: false });
 
-  // Dispatched via Gmail SMTP
-  sendOtpEmail(targetEmail, { otp, docName: documentName || 'Signed Document' });
+  // Dispatched via Gmail SMTP with await
+  try {
+    await sendOtpEmail(targetEmail, { otp, docName: documentName || 'Signed Document' });
+  } catch (e) {
+    console.warn('[OTP] Email dispatch warning:', e.message);
+  }
 
   res.json({
     status: 'ok',
