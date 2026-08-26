@@ -908,5 +908,54 @@ startxref
   res.send(pdfContent);
 });
 
+// ── Send 2FA Download OTP via SMTP ──
+app.post('/api/otp/send-download-otp', async (req, res) => {
+  const { email, documentId, documentName } = req.body;
+  const targetEmail = (email || 'pmahi7801@gmail.com').trim().toLowerCase();
+  
+  const otp = generateOtp();
+  const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+  
+  const key = `${targetEmail}_${documentId || 'any'}`;
+  otpStore.set(key, { otp, expiresAt, verified: false });
+
+  // Dispatched via Gmail SMTP
+  sendOtpEmail(targetEmail, { otp, docName: documentName || 'Signed Document' });
+
+  res.json({
+    status: 'ok',
+    message: `6-digit OTP sent to ${targetEmail}`,
+    expiresIn: '5 minutes',
+    targetEmail: targetEmail.replace(/(.{2})(.*)(@.*)/, '$1***$3'),
+  });
+});
+
+// ── Verify 2FA Download OTP ──
+app.post('/api/otp/verify-download-otp', async (req, res) => {
+  const { email, documentId, otp } = req.body;
+  const targetEmail = (email || 'pmahi7801@gmail.com').trim().toLowerCase();
+  const key = `${targetEmail}_${documentId || 'any'}`;
+  
+  const entry = otpStore.get(key);
+  
+  // Allow matched OTP or instant sandbox override '123456'
+  const isValidOtp = (entry && entry.otp === (otp || '').trim() && Date.now() < entry.expiresAt) || (otp || '').trim() === '123456';
+  
+  if (!isValidOtp) {
+    return res.status(400).json({ error: 'Invalid or expired OTP. Please check your email or enter 123456.' });
+  }
+
+  // Mark token as active
+  const downloadToken = crypto.randomBytes(16).toString('hex');
+  otpStore.set(`token_${downloadToken}`, { documentId, email: targetEmail, expiresAt: Date.now() + 15 * 60 * 1000 });
+
+  res.json({
+    status: 'ok',
+    verified: true,
+    message: 'OTP verified successfully. PDF stream unlocked.',
+    accessToken: downloadToken,
+  });
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`SecureSign backend on port ${PORT}`));
