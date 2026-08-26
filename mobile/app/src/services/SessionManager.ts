@@ -28,14 +28,15 @@ class SessionManager {
     return SessionManager._instance;
   }
 
+  private static _backgroundTime: number = 0;
+
   /**
    * Start monitoring app state changes.
-   * When app goes to background, invalidate session.
+   * Tolerates native dialogs like DocumentPicker while preserving security timeout.
    */
   static startMonitoring(onSessionInvalidated: () => void) {
     SessionManager._onSessionInvalidated = onSessionInvalidated;
 
-    // Remove existing subscription if any
     if (SessionManager._appStateSubscription) {
       SessionManager._appStateSubscription.remove();
     }
@@ -43,15 +44,14 @@ class SessionManager {
     SessionManager._appStateSubscription = AppState.addEventListener(
       'change',
       (nextState: AppStateStatus) => {
-        if (nextState === 'background' || nextState === 'inactive') {
-          // App is going to background - invalidate session
-          SessionManager.invalidateSession();
+        if (nextState === 'background') {
+          SessionManager._backgroundTime = Date.now();
         } else if (nextState === 'active') {
-          // App is coming to foreground - check if session is still valid
-          if (!SessionManager._sessionValid) {
-            // Session was invalidated while in background
+          if (SessionManager._backgroundTime && Date.now() - SessionManager._backgroundTime > SessionManager._sessionTimeout) {
+            SessionManager.invalidateSession();
             SessionManager._onSessionInvalidated?.();
           }
+          SessionManager._backgroundTime = 0;
         }
       }
     );

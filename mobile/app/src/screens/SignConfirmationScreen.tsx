@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import DSCService from '../services/DSCService';
@@ -35,18 +35,6 @@ const SignConfirmationScreen = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'confirm' | 'signing' | 'timestamping' | 'complete'>('confirm');
   const [signatureResult, setSignatureResult] = useState<any>(null);
-
-  // Check session validity when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
-      // Check if session is still valid
-      if (!SessionManager.isSessionValid()) {
-        // Session expired — re-enter PIN instead of resetting to MainTabs
-        navigation.navigate('PINEntry', { reVerify: true });
-        return;
-      }
-    }, [])
-  );
 
   const handleSign = async () => {
     setLoading(true);
