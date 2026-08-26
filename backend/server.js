@@ -216,9 +216,24 @@ function isValidUUID(str) {
   return typeof str === 'string' && (UUID_RE.test(str) || str.length >= 8);
 }
 
-function ownsResource(req, userId) {
-  if (!req.user) return false;
-  return req.user.id === userId || !userId;
+// ── Rate limiting (simple in-memory) ──
+const rateLimitMap = new Map();
+function rateLimit(windowMs = 60000, max = 30) {
+  return (req, res, next) => {
+    const key = req.ip;
+    const now = Date.now();
+    const entry = rateLimitMap.get(key) || { count: 0, resetAt: now + windowMs };
+    if (now > entry.resetAt) {
+      entry.count = 0;
+      entry.resetAt = now + windowMs;
+    }
+    entry.count++;
+    rateLimitMap.set(key, entry);
+    if (entry.count > max) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
+    next();
+  };
 }
 
 // ── Health check ──

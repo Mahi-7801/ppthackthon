@@ -1,0 +1,177 @@
+2026-08-26T07:17:44.292286397Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:44.292286847Z [inf]  ◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+2026-08-26T07:17:44.292294167Z [err]  /app/server.js:230
+2026-08-26T07:17:44.292294537Z [err]  
+2026-08-26T07:17:44.292298367Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:44.292300937Z [err]  Node.js v22.23.2
+2026-08-26T07:17:44.292302067Z [err]      ^
+2026-08-26T07:17:44.292305777Z [err]  
+2026-08-26T07:17:44.292310047Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:44.292313267Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:44.292316217Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:44.292319527Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:44.292322467Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:44.292325657Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:44.292329357Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:44.292332227Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:44.322526666Z [inf]  Starting Container
+2026-08-26T07:17:44.330727323Z [inf]  ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-08-26T07:17:44.330734853Z [err]  /app/server.js:230
+2026-08-26T07:17:44.330739793Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:44.330743833Z [err]      ^
+2026-08-26T07:17:44.330748853Z [err]  
+2026-08-26T07:17:44.330752943Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:44.330757193Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:44.330761203Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:44.330765623Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:44.330769693Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:44.330773742Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:44.330778452Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:44.330782532Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:44.330786342Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:44.330790342Z [err]  
+2026-08-26T07:17:44.330794222Z [err]  Node.js v22.23.2
+2026-08-26T07:17:45.175741941Z [err]  
+2026-08-26T07:17:45.175752831Z [err]  Node.js v22.23.2
+2026-08-26T07:17:45.175760131Z [inf]  ◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+2026-08-26T07:17:45.175760151Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:45.175771901Z [err]  /app/server.js:230
+2026-08-26T07:17:45.175773121Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:45.175777151Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:45.175779961Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:45.175781851Z [err]      ^
+2026-08-26T07:17:45.175786281Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:45.175788031Z [err]  
+2026-08-26T07:17:45.175791690Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:45.175796370Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:45.175797420Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:45.175802710Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:45.175808870Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:46.100381469Z [inf]  ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-08-26T07:17:46.100391789Z [err]  /app/server.js:230
+2026-08-26T07:17:46.100397619Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:46.100402439Z [err]      ^
+2026-08-26T07:17:46.100409669Z [err]  
+2026-08-26T07:17:46.100415019Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:46.100421098Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:46.100425728Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:46.100431668Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:46.100437378Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:46.100442468Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:46.100447368Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:46.100451738Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:46.100456588Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:46.100462328Z [err]  
+2026-08-26T07:17:46.100467438Z [err]  Node.js v22.23.2
+2026-08-26T07:17:46.697637573Z [inf]  ◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+2026-08-26T07:17:46.697642853Z [err]  /app/server.js:230
+2026-08-26T07:17:46.697646723Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:46.697650433Z [err]      ^
+2026-08-26T07:17:46.697653623Z [err]  
+2026-08-26T07:17:46.697656673Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:46.697659723Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:46.697663172Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:46.697665992Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:46.697668822Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:46.697671602Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:46.697674902Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:46.697678082Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:46.697680812Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:46.697683342Z [err]  
+2026-08-26T07:17:46.697686042Z [err]  Node.js v22.23.2
+2026-08-26T07:17:47.491186460Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:47.491194520Z [err]  
+2026-08-26T07:17:47.491200640Z [err]  Node.js v22.23.2
+2026-08-26T07:17:47.491213199Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:47.491225269Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:47.491231849Z [inf]  ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-08-26T07:17:47.491245029Z [err]  /app/server.js:230
+2026-08-26T07:17:47.491248149Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:47.491253889Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:47.491257079Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:47.491263579Z [err]      ^
+2026-08-26T07:17:47.491263709Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:47.491269988Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:47.491273848Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:47.491280738Z [err]  
+2026-08-26T07:17:47.491286288Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:48.235916186Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:48.235929466Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:48.235938936Z [err]  
+2026-08-26T07:17:48.235944296Z [inf]  ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-08-26T07:17:48.235946656Z [err]  Node.js v22.23.2
+2026-08-26T07:17:48.235959496Z [err]  /app/server.js:230
+2026-08-26T07:17:48.235966686Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:48.235978885Z [err]      ^
+2026-08-26T07:17:48.235986945Z [err]  
+2026-08-26T07:17:48.235993305Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:48.236000565Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:48.236005865Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:48.236010795Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:48.236016255Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:48.236021504Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:48.236027124Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:49.039621692Z [inf]  ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-08-26T07:17:49.039625822Z [err]  /app/server.js:230
+2026-08-26T07:17:49.039630531Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:49.039635051Z [err]      ^
+2026-08-26T07:17:49.039639641Z [err]  
+2026-08-26T07:17:49.039644021Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:49.039648351Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:49.039652471Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:49.039656711Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:49.039660991Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:49.039666891Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:49.039671861Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:49.039676681Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:49.039680981Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:49.039685220Z [err]  
+2026-08-26T07:17:49.039689740Z [err]  Node.js v22.23.2
+2026-08-26T07:17:49.760273581Z [inf]  ◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+2026-08-26T07:17:49.761566627Z [err]  /app/server.js:230
+2026-08-26T07:17:49.761575377Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:49.761579297Z [err]      ^
+2026-08-26T07:17:49.761583687Z [err]  
+2026-08-26T07:17:49.761587006Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:49.761590756Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:49.761594096Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:49.761600506Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:49.761604036Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:49.761608126Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:49.761611576Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:49.761614976Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:49.761619226Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:49.761622706Z [err]  
+2026-08-26T07:17:49.761625536Z [err]  Node.js v22.23.2
+2026-08-26T07:17:50.631171322Z [inf]  ◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+2026-08-26T07:17:50.631177232Z [err]  /app/server.js:230
+2026-08-26T07:17:50.631183962Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:50.631189232Z [err]      ^
+2026-08-26T07:17:50.631194472Z [err]  
+2026-08-26T07:17:50.631200082Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:50.631206712Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:50.631212871Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:50.631219761Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:50.631226141Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:50.631232031Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:50.631238101Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:50.631244161Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:50.631250551Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:50.631256551Z [err]  
+2026-08-26T07:17:50.631262751Z [err]  Node.js v22.23.2
+2026-08-26T07:17:51.447314714Z [err]  Node.js v22.23.2
+2026-08-26T07:17:51.447327813Z [inf]  ◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+2026-08-26T07:17:51.447332723Z [err]  /app/server.js:230
+2026-08-26T07:17:51.447335883Z [err]  app.post('/api/signup', rateLimit(60000, 20), async (req, res) => {
+2026-08-26T07:17:51.447339423Z [err]      ^
+2026-08-26T07:17:51.447342893Z [err]  
+2026-08-26T07:17:51.447346323Z [err]  ReferenceError: rateLimit is not defined
+2026-08-26T07:17:51.447350323Z [err]      at Object.<anonymous> (/app/server.js:230:5)
+2026-08-26T07:17:51.447354123Z [err]      at Module._compile (node:internal/modules/cjs/loader:1781:14)
+2026-08-26T07:17:51.447357433Z [err]      at Object..js (node:internal/modules/cjs/loader:1913:10)
+2026-08-26T07:17:51.447360983Z [err]      at Module.load (node:internal/modules/cjs/loader:1505:32)
+2026-08-26T07:17:51.447364713Z [err]      at Function._load (node:internal/modules/cjs/loader:1309:12)
+2026-08-26T07:17:51.447368123Z [err]      at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+2026-08-26T07:17:51.447371513Z [err]      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+2026-08-26T07:17:51.447374753Z [err]      at node:internal/main/run_main_module:36:49
+2026-08-26T07:17:51.447377922Z [err]  
