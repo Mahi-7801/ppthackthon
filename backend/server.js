@@ -8,23 +8,8 @@ require('dotenv').config();
 
 const app = express();
 
-// ── Gmail SMTP Transporter Configuration with Port Failover ──
-const transporter587 = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER || 'pmahi7801@gmail.com',
-    pass: process.env.SMTP_PASS || 'temwiqpfsrxxehob',
-  },
-  family: 4,
-  connectionTimeout: 8000,
-  greetingTimeout: 8000,
-  socketTimeout: 8000,
-  tls: { rejectUnauthorized: false },
-});
-
-const transporter465 = nodemailer.createTransport({
+// ── Gmail SMTP Transporter Configuration (Direct SSL Port 465) ──
+const mailTransporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 465,
   secure: true,
@@ -33,35 +18,28 @@ const transporter465 = nodemailer.createTransport({
     pass: process.env.SMTP_PASS || 'temwiqpfsrxxehob',
   },
   family: 4,
-  connectionTimeout: 8000,
-  greetingTimeout: 8000,
-  socketTimeout: 8000,
+  connectionTimeout: 4000,
+  greetingTimeout: 4000,
+  socketTimeout: 4000,
   tls: { rejectUnauthorized: false },
 });
 
 async function sendMailNotification({ to, subject, htmlText }) {
-  const mailOptions = {
-    from: `"SecureSign AP Government" <${process.env.SMTP_USER || 'pmahi7801@gmail.com'}>`,
-    to,
-    subject,
-    html: htmlText,
-  };
-
-  // Try port 587 first
+  if (!to || (!to.includes('@gmail.com') && !to.includes('@yahoo.') && !to.includes('@outlook.') && !to.includes('@ap.gov.in'))) {
+    return false;
+  }
   try {
-    const info = await transporter587.sendMail(mailOptions);
-    console.log(`[SMTP:587] Email dispatched to ${to}: ${info.messageId}`);
+    const info = await mailTransporter.sendMail({
+      from: `"SecureSign AP Government" <${process.env.SMTP_USER || 'pmahi7801@gmail.com'}>`,
+      to,
+      subject,
+      html: htmlText,
+    });
+    console.log(`[SMTP] Email dispatched to ${to}: ${info.messageId}`);
     return true;
-  } catch (err587) {
-    console.warn(`[SMTP:587] Port 587 notice (${err587.message}), attempting Port 465 SSL failover...`);
-    try {
-      const info = await transporter465.sendMail(mailOptions);
-      console.log(`[SMTP:465] Email dispatched via SSL to ${to}: ${info.messageId}`);
-      return true;
-    } catch (err465) {
-      console.error(`[SMTP:465] Port 465 notice (${err465.message}).`);
-      return false;
-    }
+  } catch (err) {
+    console.warn(`[SMTP] Notice for ${to}:`, err.message);
+    return false;
   }
 }
 
@@ -652,12 +630,10 @@ app.post('/api/otp/send-download-otp', async (req, res) => {
   const key = `${targetEmail}_${documentId || 'any'}`;
   otpStore.set(key, { otp, expiresAt, verified: false });
 
-  // Dispatched via Gmail SMTP with await
-  try {
-    await sendOtpEmail(targetEmail, { otp, docName: documentName || 'Signed Document' });
-  } catch (e) {
-    console.warn('[OTP] Email dispatch warning:', e.message);
-  }
+  // Dispatched via Gmail SMTP asynchronously (non-blocking)
+  sendOtpEmail(targetEmail, { otp, docName: documentName || 'Signed Document' }).catch(err => {
+    console.warn('[OTP] Async dispatch notice:', err.message);
+  });
 
   res.json({
     status: 'ok',
