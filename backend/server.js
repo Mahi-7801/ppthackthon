@@ -473,8 +473,8 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
         boxY = 100;
       }
 
-      const displayName = signerName || 'Ramesh Kumar';
-      const displayOrg = signerOrg || 'ABC Technologies Pvt. Ltd.';
+      const displayName = (signerName && String(signerName).trim()) || 'Authorized Officer';
+      const displayOrg = (signerOrg && String(signerOrg).trim()) || 'SecureSign Authority';
 
       lastPage.drawRectangle({
         x: boxX,
@@ -633,8 +633,8 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
       const boxX = pWidth - boxW - 50;
       const boxY = Math.max(30, currentY - 80);
 
-      const displayName = signerName || 'Ramesh Kumar';
-      const displayOrg = signerOrg || 'ABC Technologies Pvt. Ltd.';
+      const displayName = (signerName && String(signerName).trim()) || 'Authorized Officer';
+      const displayOrg = (signerOrg && String(signerOrg).trim()) || 'SecureSign Authority';
 
       lastPage.drawRectangle({
         x: boxX,
@@ -759,6 +759,9 @@ app.post('/api/assemble-signature', requireAuth, async (req, res) => {
 
   // Pre-generate signed PDF with full user content preserved
   try {
+    const resolvedSignerName = (signerName && String(signerName).trim()) || req.user?.full_name || 'Authorized Officer';
+    const resolvedSignerOrg = (signerOrg && String(signerOrg).trim()) || req.user?.organization || 'SecureSign Authority';
+
     const pdfBuffer = await generateSignedPdfBuffer({
       docName: doc?.document_name || docName,
       fileData: doc?.file_data || file_data,
@@ -768,8 +771,8 @@ app.post('/api/assemble-signature', requireAuth, async (req, res) => {
       signaturePosition,
       signatureCoordX,
       signatureCoordY,
-      signerName,
-      signerOrg,
+      signerName: resolvedSignerName,
+      signerOrg: resolvedSignerOrg,
     });
 
     signedPdfsStore.set(cleanDocId, pdfBuffer);

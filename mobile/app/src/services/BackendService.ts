@@ -51,6 +51,20 @@ async function parseJsonSafe(res: Response): Promise<any> {
 class BackendService {
   private static _currentUserId: string | null = null;
   private static _authToken: string | null = null;
+  private static _currentUser: any | null = null;
+
+  static setCurrentUser(user: any) {
+    BackendService._currentUser = user;
+    if (user) {
+      AsyncStorage.setItem('@securesign_current_user', JSON.stringify(user)).catch(() => {});
+    } else {
+      AsyncStorage.removeItem('@securesign_current_user').catch(() => {});
+    }
+  }
+
+  static getCurrentUser(): any {
+    return BackendService._currentUser;
+  }
 
   static getAuthToken(): string | null {
     return BackendService._authToken;
@@ -86,13 +100,17 @@ class BackendService {
    */
   static async restoreSession(): Promise<boolean> {
     try {
-      const [token, userId] = await Promise.all([
+      const [token, userId, userStr] = await Promise.all([
         AsyncStorage.getItem(STORAGE_TOKEN_KEY),
         AsyncStorage.getItem(STORAGE_USER_ID_KEY),
+        AsyncStorage.getItem('@securesign_current_user'),
       ]);
       if (token && userId) {
         BackendService._authToken = token;
         BackendService._currentUserId = userId;
+        if (userStr) {
+          try { BackendService._currentUser = JSON.parse(userStr); } catch {}
+        }
         return true;
       }
     } catch {
@@ -119,6 +137,10 @@ class BackendService {
       });
       const data = await parseJsonSafe(res);
       if (data.token) BackendService.setAuthToken(data.token);
+      if (data.user) {
+        BackendService.setCurrentUser(data.user);
+        if (data.user.id) BackendService.setCurrentUserId(data.user.id);
+      }
       return { user: data.user };
     } catch (error: any) {
       console.warn('[BackendService] Signup error:', error);
@@ -135,6 +157,8 @@ class BackendService {
       };
       const mockToken = 'mock_token_' + Date.now();
       BackendService.setAuthToken(mockToken);
+      BackendService.setCurrentUser(mockUser);
+      BackendService.setCurrentUserId(mockUser.id);
       return { user: mockUser };
     }
   }
@@ -149,6 +173,10 @@ class BackendService {
       });
       const data = await parseJsonSafe(res);
       if (data.token) BackendService.setAuthToken(data.token);
+      if (data.user) {
+        BackendService.setCurrentUser(data.user);
+        if (data.user.id) BackendService.setCurrentUserId(data.user.id);
+      }
       return { user: data.user };
     } catch (error: any) {
       console.warn('[BackendService] Login error:', error);
@@ -165,6 +193,8 @@ class BackendService {
       };
       const mockToken = 'mock_token_' + Date.now();
       BackendService.setAuthToken(mockToken);
+      BackendService.setCurrentUser(mockUser);
+      BackendService.setCurrentUserId(mockUser.id);
       return { user: mockUser };
     }
   }

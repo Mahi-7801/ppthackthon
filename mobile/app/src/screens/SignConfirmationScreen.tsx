@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  TextInput,
   Alert,
   ActivityIndicator,
   ScrollView,
@@ -23,7 +24,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
  * Sign Confirmation Screen
  * 
  * Direct, streamlined officer workflow:
- * 1. Choose/Upload signature at top
+ * 1. Choose/Upload signature at top (Dynamic name and department taken from officer)
  * 2. Preview document with signature place already shown (tap to relocate if desired)
  * 3. Tap "Sign & Seal Document"
  * 4. Final audit & verification display immediately shown (matching official standard)
@@ -39,13 +40,28 @@ const SignConfirmationScreen = () => {
   // Workflow Steps: 'sign_and_place' -> 'signing' | 'timestamping' -> 'complete'
   const [step, setStep] = useState<'sign_and_place' | 'signing' | 'timestamping' | 'complete'>('sign_and_place');
 
-  // Signature state
+  // Dynamic signature state (taken from logged-in user or officer input)
   const [signerName, setSignerName] = useState('Ramesh Kumar');
   const [signerOrg, setSignerOrg] = useState('ABC Technologies Pvt. Ltd.');
   const [signerRole, setSignerRole] = useState('Managing Director');
   const [signerDin, setSignerDin] = useState('DIN: 01234567');
-  const [selectedPreset, setSelectedPreset] = useState<'ramesh' | 'sharma' | 'lalitha' | 'uploaded'>('ramesh');
+  const [selectedPreset, setSelectedPreset] = useState<'ramesh' | 'sharma' | 'lalitha' | 'uploaded' | 'custom'>('ramesh');
   const [showSigPicker, setShowSigPicker] = useState(false);
+
+  // Automatically load officer name from active user session if available
+  useEffect(() => {
+    const user = BackendService.getCurrentUser();
+    if (user) {
+      if (user.full_name) {
+        setSignerName(user.full_name);
+        setSignerRole('Authorised Officer');
+        setSelectedPreset('custom');
+      }
+      if (user.organization) {
+        setSignerOrg(user.organization);
+      }
+    }
+  }, []);
 
   // Placement state (default bottom-right)
   const [selectedPosition, setSelectedPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'center' | 'custom'>('bottom-right');
@@ -305,10 +321,52 @@ const SignConfirmationScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Optional Signature Switcher / Upload Panel */}
+          {/* Optional Signature Switcher & Dynamic Officer Info Panel */}
           {showSigPicker && (
             <View style={styles.sigPickerCard}>
-              <Text style={styles.sigPickerHeader}>Select Signer Profile or Upload Custom Ink:</Text>
+              <Text style={styles.sigPickerHeader}>Edit Officer Details (Dynamically Applied):</Text>
+
+              <Text style={styles.inputFieldLabel}>Officer Full Name:</Text>
+              <TextInput
+                style={styles.sigTextInput}
+                value={signerName}
+                onChangeText={(text) => {
+                  setSignerName(text);
+                  setSelectedPreset('custom');
+                }}
+                placeholder="Enter Officer Full Name"
+                placeholderTextColor="#94A3B8"
+              />
+
+              <Text style={styles.inputFieldLabel}>Department / Organization:</Text>
+              <TextInput
+                style={styles.sigTextInput}
+                value={signerOrg}
+                onChangeText={(text) => {
+                  setSignerOrg(text);
+                  setSelectedPreset('custom');
+                }}
+                placeholder="Enter Organization / Department"
+                placeholderTextColor="#94A3B8"
+              />
+
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+                <TouchableOpacity
+                  style={[styles.sigActionButton, { flex: 1.5, backgroundColor: '#0284C7' }]}
+                  onPress={handleUploadSignature}
+                >
+                  <Text style={styles.sigActionButtonText}>📸 Upload Signature Photo</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.sigActionButton, { flex: 1, backgroundColor: '#475569' }]}
+                  onPress={() => setShowSigPicker(false)}
+                >
+                  <Text style={styles.sigActionButtonText}>Save & Done</Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={[styles.inputFieldLabel, { marginTop: 12 }]}>Or Quick Presets:</Text>
               <View style={styles.sigPresetsRow}>
                 <TouchableOpacity
                   style={[styles.sigPresetChip, selectedPreset === 'ramesh' && styles.sigPresetChipActive]}
@@ -335,13 +393,6 @@ const SignConfirmationScreen = () => {
                   <Text style={[styles.sigPresetChipText, selectedPreset === 'lalitha' && styles.sigPresetChipTextActive]}>
                     Talari Lalitha
                   </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.sigPresetChip, { backgroundColor: '#F1F5F9' }]}
-                  onPress={handleUploadSignature}
-                >
-                  <Text style={styles.sigPresetChipText}>📸 Upload Photo</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -740,7 +791,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#334155',
-    marginBottom: 8,
+    marginBottom: 6,
+  },
+  inputFieldLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+    marginTop: 6,
+    marginBottom: 3,
+  },
+  sigTextInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    fontSize: 13,
+    color: '#0F172A',
+  },
+  sigActionButton: {
+    paddingVertical: 9,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  sigActionButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   sigPresetsRow: {
     flexDirection: 'row',
