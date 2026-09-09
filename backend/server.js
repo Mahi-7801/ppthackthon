@@ -449,29 +449,6 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
       const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-      pages.forEach((page, idx) => {
-        const { width } = page.getSize();
-        page.drawRectangle({
-          x: 20,
-          y: 10,
-          width: width - 40,
-          height: 16,
-          color: rgb(0.95, 0.97, 1.0),
-          borderColor: rgb(0.1, 0.5, 0.9),
-          borderWidth: 0.5,
-        });
-        page.drawText(
-          `SECURESIGN VERIFICATION | Page ${idx + 1} of ${pages.length} | Class 3 DSC Token | Cert: ${(certSerial || '').slice(0, 18)}... | Demo Verification Record`,
-          {
-            x: 26,
-            y: 15,
-            size: 6.5,
-            font: fontRegular,
-            color: rgb(0.1, 0.3, 0.6),
-          }
-        );
-      });
-
       // Draw visible signature stamp at officer's selected location on the last page of user's document
       const lastPage = pages[pages.length - 1];
       const { width: pWidth, height: pHeight } = lastPage.getSize();
@@ -565,15 +542,6 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
         color: rgb(0.05, 0.55, 0.2),
       });
 
-      const certPage = pdfDoc.addPage([612, 792]);
-      drawOfficialEndorsementSheet(certPage, fontBold, fontRegular, {
-        docName,
-        certSerial,
-        signDate,
-        hash,
-        totalPages: pages.length + 1,
-      });
-
       return Buffer.from(await pdfDoc.save());
     } else if (isDocx) {
       const mammothResult = await mammoth.extractRawText({ buffer });
@@ -658,13 +626,72 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
         }
       }
 
-      const certPage = pdfDoc.addPage([612, 792]);
-      drawOfficialEndorsementSheet(certPage, fontBold, fontRegular, {
-        docName,
-        certSerial,
-        signDate,
-        hash,
-        totalPages: pdfDoc.getPages().length,
+      const lastPage = currentPage;
+      const { width: pWidth } = lastPage.getSize();
+      const boxW = 210;
+      const boxH = 65;
+      const boxX = pWidth - boxW - 50;
+      const boxY = Math.max(30, currentY - 80);
+
+      const displayName = signerName || 'Ramesh Kumar';
+      const displayOrg = signerOrg || 'ABC Technologies Pvt. Ltd.';
+
+      lastPage.drawRectangle({
+        x: boxX,
+        y: boxY,
+        width: boxW,
+        height: boxH,
+        color: rgb(0.96, 0.98, 1.0),
+        borderColor: rgb(0.06, 0.47, 0.8),
+        borderWidth: 1.2,
+      });
+
+      lastPage.drawRectangle({
+        x: boxX,
+        y: boxY + boxH - 15,
+        width: boxW,
+        height: 15,
+        color: rgb(0.06, 0.47, 0.8),
+      });
+
+      lastPage.drawText('DIGITALLY SIGNED -- SECURESIGN', {
+        x: boxX + 8,
+        y: boxY + boxH - 11,
+        size: 7,
+        font: fontBold,
+        color: rgb(1, 1, 1),
+      });
+
+      lastPage.drawText(`Digitally signed by ${displayName}`, {
+        x: boxX + 8,
+        y: boxY + boxH - 25,
+        size: 6.8,
+        font: fontBold,
+        color: rgb(0.1, 0.2, 0.4),
+      });
+
+      lastPage.drawText(`CN=${displayName}, O=${displayOrg}`, {
+        x: boxX + 8,
+        y: boxY + boxH - 35,
+        size: 6,
+        font: fontRegular,
+        color: rgb(0.2, 0.2, 0.3),
+      });
+
+      lastPage.drawText(`Date: ${(signDate || '').slice(0, 19).replace('T', ' ')} IST`, {
+        x: boxX + 8,
+        y: boxY + boxH - 45,
+        size: 6,
+        font: fontRegular,
+        color: rgb(0.2, 0.2, 0.3),
+      });
+
+      lastPage.drawText('Status: VERIFIED & TAMPER-EVIDENT', {
+        x: boxX + 8,
+        y: boxY + boxH - 56,
+        size: 6,
+        font: fontBold,
+        color: rgb(0.05, 0.55, 0.2),
       });
 
       return Buffer.from(await pdfDoc.save());

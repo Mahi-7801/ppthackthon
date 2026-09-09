@@ -22,11 +22,11 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 /**
  * Sign Confirmation Screen
  * 
- * Complete Officer Workflow:
- * 1. Signature Capture & Transparent Background Removal
- * 2. Interactive Document Placement with Alert & Red Mark Target
- * 3. Hardware Token Cryptographic Signing & RFC 3161 Timestamping
- * 4. Final Verification & Audit Result Screen (Matching Official DSC Standard)
+ * Direct, streamlined officer workflow:
+ * 1. Choose/Upload signature at top
+ * 2. Preview document with signature place already shown (tap to relocate if desired)
+ * 3. Tap "Sign & Seal Document"
+ * 4. Final audit & verification display immediately shown (matching official standard)
  */
 const SignConfirmationScreen = () => {
   const navigation = useNavigation<any>();
@@ -36,8 +36,8 @@ const SignConfirmationScreen = () => {
     documentHash: string;
   };
 
-  // Workflow Steps: 'signature' -> 'place' -> 'signing' | 'timestamping' -> 'complete'
-  const [step, setStep] = useState<'signature' | 'place' | 'signing' | 'timestamping' | 'complete'>('signature');
+  // Workflow Steps: 'sign_and_place' -> 'signing' | 'timestamping' -> 'complete'
+  const [step, setStep] = useState<'sign_and_place' | 'signing' | 'timestamping' | 'complete'>('sign_and_place');
 
   // Signature state
   const [signerName, setSignerName] = useState('Ramesh Kumar');
@@ -45,15 +45,12 @@ const SignConfirmationScreen = () => {
   const [signerRole, setSignerRole] = useState('Managing Director');
   const [signerDin, setSignerDin] = useState('DIN: 01234567');
   const [selectedPreset, setSelectedPreset] = useState<'ramesh' | 'sharma' | 'lalitha' | 'uploaded'>('ramesh');
-  const [uploadedSigUri, setUploadedSigUri] = useState<string | null>(null);
-  const [bgRemoved, setBgRemoved] = useState(true);
+  const [showSigPicker, setShowSigPicker] = useState(false);
 
-  // Placement state
+  // Placement state (default bottom-right)
   const [selectedPosition, setSelectedPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'center' | 'custom'>('bottom-right');
   const [coordX, setCoordX] = useState(68); // percentage 0-100
   const [coordY, setCoordY] = useState(82); // percentage 0-100
-  const [hasTapped, setHasTapped] = useState(false);
-  const canvasRef = useRef<View>(null);
 
   // Signing & Results state
   const [signatureResult, setSignatureResult] = useState<any>(null);
@@ -82,6 +79,7 @@ const SignConfirmationScreen = () => {
       setSignerOrg('Revenue & Lands Dept');
       setSignerDin('ID: AP-REV-9012');
     }
+    setShowSigPicker(false);
   };
 
   // Upload custom signature image
@@ -92,23 +90,17 @@ const SignConfirmationScreen = () => {
         copyToCacheDirectory: true,
       });
       if (!result.canceled && result.assets && result.assets[0]) {
-        setUploadedSigUri(result.assets[0].uri);
         setSelectedPreset('uploaded');
-        setBgRemoved(true);
-        Alert.alert(
-          'Signature Uploaded',
-          'Automatic background removal applied! Pure transparent ink extracted.'
-        );
+        setShowSigPicker(false);
       }
     } catch (e: any) {
-      Alert.alert('Notice', e.message || 'Signature picker closed');
+      console.warn('Picker notice:', e.message);
     }
   };
 
   // Handle interactive touch on document canvas to place Red Mark
   const handleCanvasTouch = (evt: any) => {
     const { locationX, locationY } = evt.nativeEvent;
-    // Assume standard canvas preview width 340, height 320
     const canvasWidth = SCREEN_WIDTH - 48;
     const canvasHeight = 320;
 
@@ -117,7 +109,6 @@ const SignConfirmationScreen = () => {
 
     setCoordX(pctX);
     setCoordY(pctY);
-    setHasTapped(true);
     setSelectedPosition('custom');
   };
 
@@ -139,7 +130,7 @@ const SignConfirmationScreen = () => {
     }
   };
 
-  // Execute Cryptographic Signing
+  // Execute Cryptographic Signing & Show Final Audit Immediately
   const handleExecuteSigning = async () => {
     setStep('signing');
 
@@ -227,7 +218,7 @@ const SignConfirmationScreen = () => {
       setAuditId(auditResult.auditId);
       setVerificationResult(verified);
 
-      // Transition to final result screen!
+      // Immediately show final audit!
       setStep('complete');
 
     } catch (error: any) {
@@ -237,11 +228,11 @@ const SignConfirmationScreen = () => {
           'Your session has expired. Please re-enter your PIN to continue.',
           [{ text: 'OK', onPress: () => navigation.navigate('PINEntry', { reVerify: true }) }]
         );
-        setStep('place');
+        setStep('sign_and_place');
         return;
       }
       Alert.alert('Signing Error', error.message || 'Failed to sign document');
-      setStep('place');
+      setStep('sign_and_place');
     }
   };
 
@@ -249,7 +240,7 @@ const SignConfirmationScreen = () => {
   const handleDownloadAndShare = async () => {
     setDownloading(true);
     try {
-      const baseDocName = (document.name || 'Signed_Legal_Document')
+      const baseDocName = (document.name || 'Signed_Document')
         .replace(/\.[^/.]+$/, '')
         .replace(/[^a-zA-Z0-9._-]/g, '_');
       const docFileName = `${baseDocName}-signed.pdf`;
@@ -294,117 +285,74 @@ const SignConfirmationScreen = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      {/* ── STEP 1: OFFICER SIGNATURE CAPTURE & BG REMOVAL ── */}
-      {step === 'signature' && (
+      {/* ── STEP: DIRECT DOCUMENT VIEW WITH SIGNATURE PLACE ── */}
+      {step === 'sign_and_place' && (
         <>
-          <View style={styles.stepHeader}>
-            <Text style={styles.stepBadge}>STEP 1 OF 2</Text>
-            <Text style={styles.mainTitle}>✍️ Officer Signature</Text>
-            <Text style={styles.subTitle}>Select or upload handwritten signature for digital endorsement</Text>
-          </View>
-
-          {/* Signature Presets */}
-          <View style={styles.card}>
-            <Text style={styles.cardHeader}>Select Officer Signature</Text>
-
-            <TouchableOpacity
-              style={[styles.presetCard, selectedPreset === 'ramesh' && styles.presetCardActive]}
-              onPress={() => handleSelectPreset('ramesh')}
-            >
-              <View style={styles.radioCircle}>
-                {selectedPreset === 'ramesh' && <View style={styles.radioDot} />}
-              </View>
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.presetName}>Ramesh Kumar (Managing Director)</Text>
-                <Text style={styles.presetMeta}>ABC Technologies Pvt. Ltd. | DIN: 01234567</Text>
-              </View>
-              <Text style={styles.presetScriptSig}>Ramesh</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.presetCard, selectedPreset === 'sharma' && styles.presetCardActive]}
-              onPress={() => handleSelectPreset('sharma')}
-            >
-              <View style={styles.radioCircle}>
-                {selectedPreset === 'sharma' && <View style={styles.radioDot} />}
-              </View>
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.presetName}>A. Sharma (Joint Secretary)</Text>
-                <Text style={styles.presetMeta}>Finance & Audit Dept | ID: AP-GOV-4821</Text>
-              </View>
-              <Text style={styles.presetScriptSig}>A.Sharma</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.presetCard, selectedPreset === 'lalitha' && styles.presetCardActive]}
-              onPress={() => handleSelectPreset('lalitha')}
-            >
-              <View style={styles.radioCircle}>
-                {selectedPreset === 'lalitha' && <View style={styles.radioDot} />}
-              </View>
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={styles.presetName}>Talari Lalitha (Authorised Officer)</Text>
-                <Text style={styles.presetMeta}>Revenue & Lands Dept | ID: AP-REV-9012</Text>
-              </View>
-              <Text style={styles.presetScriptSig}>TLalitha</Text>
-            </TouchableOpacity>
-
-            {/* Custom Upload Button */}
-            <TouchableOpacity style={styles.uploadButton} onPress={handleUploadSignature}>
-              <Text style={styles.uploadButtonText}>📸 Upload / Scan Signature Photo</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Background Removal Status & Transparent Ink Preview */}
-          <View style={styles.card}>
-            <View style={styles.bgRemovalBadge}>
-              <Text style={styles.bgRemovalBadgeText}>✨ Background Removal: AUTOMATIC (Transparent Ink)</Text>
+          {/* Header Officer Signature Bar */}
+          <View style={styles.sigTopBar}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.sigTopBarLabel}>Officer Signature (Transparent Ink):</Text>
+              <Text style={styles.sigTopBarName}>✍️ {signerName} ({signerRole})</Text>
             </View>
 
-            <Text style={styles.previewLabel}>Extracted Ink Preview (Transparent Canvas):</Text>
-            <View style={styles.checkerboardCanvas}>
-              <View style={styles.signatureDisplayBox}>
-                <Text style={styles.extractedSignatureText}>
-                  {selectedPreset === 'ramesh' ? 'Ramesh' : selectedPreset === 'sharma' ? 'A.Sharma' : 'TLalitha'}
-                </Text>
-                <Text style={styles.inkAnnotation}>[300 DPI Transparent Blue Ink Extracted]</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Proceed to Placement */}
-          <TouchableOpacity style={styles.primaryButton} onPress={() => setStep('place')}>
-            <Text style={styles.primaryButtonText}>Next: Place Signature on Document ➔</Text>
-          </TouchableOpacity>
-        </>
-      )}
-
-      {/* ── STEP 2: INTERACTIVE DOCUMENT PREVIEW & RED MARK PLACEMENT ── */}
-      {step === 'place' && (
-        <>
-          <View style={styles.stepHeader}>
-            <Text style={styles.stepBadge}>STEP 2 OF 2</Text>
-            <Text style={styles.mainTitle}>📍 Place Signature</Text>
-            <Text style={styles.subTitle}>Position your signature stamp precisely on the document</Text>
-          </View>
-
-          {/* Prompt Alert Banner (Requested by user) */}
-          <View style={styles.promptAlertBox}>
-            <Text style={styles.promptAlertIcon}>⚠️</Text>
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={styles.promptAlertTitle}>Plz mention which place you want sign</Text>
-              <Text style={styles.promptAlertSub}>
-                Tap anywhere on the document preview below to position the red signature mark.
+            <TouchableOpacity
+              style={styles.changeSigBtn}
+              onPress={() => setShowSigPicker(!showSigPicker)}
+            >
+              <Text style={styles.changeSigBtnText}>
+                {showSigPicker ? 'Close' : '📷 Change / Upload'}
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
-          {/* Interactive Document Page Canvas */}
+          {/* Optional Signature Switcher / Upload Panel */}
+          {showSigPicker && (
+            <View style={styles.sigPickerCard}>
+              <Text style={styles.sigPickerHeader}>Select Signer Profile or Upload Custom Ink:</Text>
+              <View style={styles.sigPresetsRow}>
+                <TouchableOpacity
+                  style={[styles.sigPresetChip, selectedPreset === 'ramesh' && styles.sigPresetChipActive]}
+                  onPress={() => handleSelectPreset('ramesh')}
+                >
+                  <Text style={[styles.sigPresetChipText, selectedPreset === 'ramesh' && styles.sigPresetChipTextActive]}>
+                    Ramesh Kumar
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.sigPresetChip, selectedPreset === 'sharma' && styles.sigPresetChipActive]}
+                  onPress={() => handleSelectPreset('sharma')}
+                >
+                  <Text style={[styles.sigPresetChipText, selectedPreset === 'sharma' && styles.sigPresetChipTextActive]}>
+                    A. Sharma
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.sigPresetChip, selectedPreset === 'lalitha' && styles.sigPresetChipActive]}
+                  onPress={() => handleSelectPreset('lalitha')}
+                >
+                  <Text style={[styles.sigPresetChipText, selectedPreset === 'lalitha' && styles.sigPresetChipTextActive]}>
+                    Talari Lalitha
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.sigPresetChip, { backgroundColor: '#F1F5F9' }]}
+                  onPress={handleUploadSignature}
+                >
+                  <Text style={styles.sigPresetChipText}>📸 Upload Photo</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Interactive Document Page Canvas (Directly showing the place!) */}
           <View style={styles.card}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={styles.cardHeader}>📄 Document Preview (Tap to Set Red Mark)</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
+              <Text style={styles.cardHeader}>📄 Document Preview & Signature Location</Text>
               <Text style={{ fontSize: 11, color: '#DC2626', fontWeight: '700' }}>
-                {hasTapped ? `Target: X:${coordX}%, Y:${coordY}%` : 'Tap to Place'}
+                Position: {selectedPosition.replace('-', ' ').toUpperCase()}
               </Text>
             </View>
 
@@ -424,13 +372,13 @@ const SignConfirmationScreen = () => {
               <View style={styles.mockDivider} />
 
               {/* Mock Content Lines */}
-              <Text style={styles.mockDocTitle}>Digital Signature Certificate (DSC) - Document</Text>
+              <Text style={styles.mockDocTitle}>Digital Signature Certificate (DSC) – Document</Text>
               <View style={styles.mockLine} />
               <View style={[styles.mockLine, { width: '85%' }]} />
               <View style={[styles.mockLine, { width: '92%' }]} />
               <View style={[styles.mockLine, { width: '75%' }]} />
 
-              {/* ── DYNAMIC RED MARK TARGET BOX (User requested `{ red mark }`) ── */}
+              {/* ── RED MARK TARGET BOX ON THE DOCUMENT ── */}
               <View
                 style={[
                   styles.redMarkContainer,
@@ -458,7 +406,7 @@ const SignConfirmationScreen = () => {
             </TouchableOpacity>
 
             <Text style={styles.canvasHelpText}>
-              💡 Tap anywhere on the page to move the red mark, or select a preset below:
+              💡 Tap anywhere on the page to move the signature place, or tap a preset below:
             </Text>
 
             {/* Quick Snap Preset Buttons */}
@@ -468,7 +416,7 @@ const SignConfirmationScreen = () => {
                 onPress={() => handleSnapPosition('bottom-right')}
               >
                 <Text style={[styles.snapButtonText, selectedPosition === 'bottom-right' && styles.snapButtonTextActive]}>
-                  Bottom Right
+                  Bottom Right (Default)
                 </Text>
               </TouchableOpacity>
 
@@ -501,26 +449,17 @@ const SignConfirmationScreen = () => {
             </View>
           </View>
 
-          {/* Action Buttons */}
-          <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-            <TouchableOpacity
-              style={[styles.secondaryButton, { flex: 1 }]}
-              onPress={() => setStep('signature')}
-            >
-              <Text style={styles.secondaryButtonText}>Back</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.primaryButton, { flex: 2 }]}
-              onPress={handleExecuteSigning}
-            >
-              <Text style={styles.primaryButtonText}>Submit & Sign Document 🔐</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Primary Action Button: Sign & Seal Document */}
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={handleExecuteSigning}
+          >
+            <Text style={styles.primaryButtonText}>Sign & Seal Document 🔐</Text>
+          </TouchableOpacity>
         </>
       )}
 
-      {/* ── STEP 3: SIGNING IN PROGRESS ── */}
+      {/* ── STEP: SIGNING IN PROGRESS ── */}
       {step === 'signing' && (
         <View style={styles.loadingCard}>
           <ActivityIndicator size="large" color="#0066FF" />
@@ -541,7 +480,7 @@ const SignConfirmationScreen = () => {
         </View>
       )}
 
-      {/* ── STEP 4: FINAL AUDIT & RESULT SCREEN (EXACTLY MATCHING USER'S IMAGE) ── */}
+      {/* ── STEP: FINAL AUDIT & RESULT SCREEN (EXACTLY MATCHING USER'S IMAGE) ── */}
       {step === 'complete' && (
         <>
           <View style={styles.successBanner}>
@@ -754,29 +693,79 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     padding: 16,
   },
-  stepHeader: {
-    marginBottom: 16,
+  sigTopBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
   },
-  stepBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#DBEAFE',
-    color: '#1D4ED8',
-    fontSize: 11,
-    fontWeight: '800',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    marginBottom: 6,
+  sigTopBarLabel: {
+    fontSize: 10.5,
+    color: '#64748B',
+    fontWeight: '600',
   },
-  mainTitle: {
-    fontSize: 22,
+  sigTopBarName: {
+    fontSize: 13,
     fontWeight: '800',
     color: '#0F172A',
-  },
-  subTitle: {
-    fontSize: 13,
-    color: '#64748B',
     marginTop: 2,
+  },
+  changeSigBtn: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  changeSigBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1D4ED8',
+  },
+  sigPickerCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  sigPickerHeader: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#334155',
+    marginBottom: 8,
+  },
+  sigPresetsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  sigPresetChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  sigPresetChipActive: {
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
+  },
+  sigPresetChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  sigPresetChipTextActive: {
+    color: '#FFFFFF',
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -791,137 +780,9 @@ const styles = StyleSheet.create({
     }),
   },
   cardHeader: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '700',
     color: '#1E293B',
-    marginBottom: 12,
-  },
-  presetCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
-    marginBottom: 10,
-  },
-  presetCardActive: {
-    borderColor: '#2563EB',
-    backgroundColor: '#EFF6FF',
-  },
-  radioCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#94A3B8',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#2563EB',
-  },
-  presetName: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  presetMeta: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 1,
-  },
-  presetScriptSig: {
-    fontStyle: 'italic',
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#1D4ED8',
-    letterSpacing: 1,
-  },
-  uploadButton: {
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#94A3B8',
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  uploadButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#334155',
-  },
-  bgRemovalBadge: {
-    backgroundColor: '#ECFDF5',
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  bgRemovalBadgeText: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: '#065F46',
-    textAlign: 'center',
-  },
-  previewLabel: {
-    fontSize: 12,
-    color: '#64748B',
-    marginBottom: 6,
-  },
-  checkerboardCanvas: {
-    height: 90,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  signatureDisplayBox: {
-    alignItems: 'center',
-  },
-  extractedSignatureText: {
-    fontStyle: 'italic',
-    fontSize: 34,
-    fontWeight: '900',
-    color: '#1D4ED8',
-    letterSpacing: 1.5,
-  },
-  inkAnnotation: {
-    fontSize: 10,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  promptAlertBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1.5,
-    borderColor: '#EF4444',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  promptAlertIcon: {
-    fontSize: 22,
-  },
-  promptAlertTitle: {
-    fontSize: 13.5,
-    fontWeight: '800',
-    color: '#991B1B',
-  },
-  promptAlertSub: {
-    fontSize: 11.5,
-    color: '#B91C1C',
-    marginTop: 2,
   },
   interactiveCanvas: {
     height: 320,
@@ -1066,20 +927,9 @@ const styles = StyleSheet.create({
     }),
   },
   primaryButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 14.5,
+    fontWeight: '800',
     color: '#FFFFFF',
-  },
-  secondaryButton: {
-    backgroundColor: '#E2E8F0',
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#334155',
   },
   loadingCard: {
     backgroundColor: '#FFFFFF',
