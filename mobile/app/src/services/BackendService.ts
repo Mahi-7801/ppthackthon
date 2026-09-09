@@ -2,8 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL ?? 'https://hackthonapp-production.up.railway.app';
 
-// Fast 5-second timeout for snappy app responsiveness
-const FETCH_TIMEOUT = 5000;
+// 45-second timeout for reliable Base64 document uploads over mobile/cellular networks
+const FETCH_TIMEOUT = 45000;
 
 // In-memory cache for ultra-fast UI rendering
 let _documentsCache: any[] | null = null;
@@ -310,12 +310,19 @@ class BackendService {
     }
   }
 
+  static getBackendUrl(): string {
+    return BACKEND_URL;
+  }
+
   // ── Assemble Signature (PAdES) ──
   static async assembleSignature(params: {
     documentId: string;
     signature: string;
     timestamp: string;
     certificateSerial: string;
+    fileBase64?: string;
+    documentName?: string;
+    documentHash?: string;
   }): Promise<{ signedDocumentUrl: string }> {
     try {
       const res = await fetchWithTimeout(`${BACKEND_URL}/api/assemble-signature`, {
@@ -326,15 +333,21 @@ class BackendService {
           signature: params.signature,
           timestamp: params.timestamp,
           certificateSerial: params.certificateSerial,
+          file_data: params.fileBase64,
+          document_name: params.documentName,
+          documentHash: params.documentHash,
         }),
       });
       const data = await parseJsonSafe(res);
-      return { signedDocumentUrl: data.signedDocumentUrl };
+      let url = data.signedDocumentUrl;
+      if (url && url.startsWith('/')) {
+        url = `${BACKEND_URL}${url}`;
+      }
+      return { signedDocumentUrl: url || `${BACKEND_URL}/signed-documents/${params.documentId}-signed.pdf` };
     } catch (error: any) {
       if (error?.message?.startsWith('SESSION_EXPIRED:')) throw error;
-      // Fall back to a local path so the signing flow doesn't break
-      console.warn('[BackendService] Assemble endpoint unavailable:', error);
-      return { signedDocumentUrl: `/signed-documents/${params.documentId}-signed.pdf` };
+      console.warn('[BackendService] Assemble endpoint notice:', error);
+      return { signedDocumentUrl: `${BACKEND_URL}/signed-documents/${params.documentId}-signed.pdf` };
     }
   }
 

@@ -64,17 +64,26 @@ const DocumentSelectScreen = () => {
   const handlePickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
+        type: [
+          'application/pdf',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/msword',
+          '*/*',
+        ],
         copyToCacheDirectory: true,
       });
 
       if (result.canceled) return;
 
       const file = result.assets[0];
-      if (!file.name.toLowerCase().endsWith('.pdf')) {
+      const nameLower = file.name.toLowerCase();
+      const isPdf = nameLower.endsWith('.pdf');
+      const isWord = nameLower.endsWith('.docx') || nameLower.endsWith('.doc');
+
+      if (!isPdf && !isWord) {
         Alert.alert(
-          'PDF Document Required',
-          'PAdES (PDF Advanced Electronic Signatures) requires a PDF document. Please select a .pdf file.'
+          'Document Format Supported',
+          'Please select a PDF document (.pdf) or Word document (.docx, .doc).'
         );
         return;
       }
@@ -105,6 +114,7 @@ const DocumentSelectScreen = () => {
         uri: file.uri,
         storagePath: uploadResult.storagePath,
         isLocal: false,
+        fileBase64: content,
       };
 
       setDocuments(prev => [doc, ...prev]);
@@ -205,7 +215,7 @@ const DocumentSelectScreen = () => {
       ) : (
         <>
           <TouchableOpacity style={styles.addButton} onPress={handlePickDocument}>
-            <Text style={styles.addButtonText}>📁 Pick Document to Sign (PDF)</Text>
+            <Text style={styles.addButtonText}>📁 Pick Document to Sign (PDF / Word)</Text>
           </TouchableOpacity>
 
           <FlatList
@@ -218,7 +228,7 @@ const DocumentSelectScreen = () => {
               <View style={{ alignItems: 'center', padding: 24 }}>
                 <Text style={{ fontSize: 36, marginBottom: 8 }}>📄</Text>
                 <Text style={{ color: '#64748B', textAlign: 'center', fontSize: 14 }}>
-                  No documents selected yet. Tap "Pick Document" above to choose a PDF from your phone.
+                  No documents selected yet. Tap "Pick Document" above to choose a PDF or Word document (.docx) from your phone.
                 </Text>
               </View>
             }

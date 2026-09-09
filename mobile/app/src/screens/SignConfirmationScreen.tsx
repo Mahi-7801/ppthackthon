@@ -108,6 +108,18 @@ const SignConfirmationScreen = () => {
 
     setFinishLoading(true);
     try {
+      // Ensure user's document Base64 data is present so content is 100% preserved
+      let fileBase64 = (document as any).fileBase64;
+      if (!fileBase64 && document.uri) {
+        try {
+          fileBase64 = await FileSystem.readAsStringAsync(document.uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+        } catch (readErr) {
+          console.warn('[SignConfirmation] Could not read doc uri:', readErr);
+        }
+      }
+
       // Execute all post-signing API operations concurrently in parallel for 4x speedup
       const [sessionResult, assembled, auditResult, verified] = await Promise.all([
         BackendService.recordSigningSession({
@@ -122,6 +134,9 @@ const SignConfirmationScreen = () => {
           signature: signatureResult.signature,
           timestamp: signatureResult.timestamp,
           certificateSerial: signatureResult.certificateSerial,
+          fileBase64,
+          documentName: document.name,
+          documentHash,
         }),
         BackendService.logAudit({
           eventType: 'document_signed',
@@ -163,16 +178,24 @@ const SignConfirmationScreen = () => {
   const handleDownloadAndShare = async () => {
     setDownloading(true);
     try {
-      const docName = (document.name || 'Signed_Legal_Document.pdf').replace(/[^a-zA-Z0-9._-]/g, '_');
-      const fileUri = `${FileSystem.cacheDirectory}${docName}`;
+      const baseDocName = (document.name || 'Signed_Legal_Document')
+        .replace(/\.[^/.]+$/, '')
+        .replace(/[^a-zA-Z0-9._-]/g, '_');
+      const docFileName = `${baseDocName}-signed.pdf`;
+      const fileUri = `${FileSystem.cacheDirectory}${docFileName}`;
 
-      // Download official signed PDF with visible CCA digital signature stamp
-      if (assembleResult?.signedDocumentUrl) {
+      let downloadUrl = assembleResult?.signedDocumentUrl;
+      if (downloadUrl && downloadUrl.startsWith('/')) {
+        downloadUrl = `${BackendService.getBackendUrl()}${downloadUrl}`;
+      }
+
+      // Download official signed PDF with full user content and visible CCA digital signature endorsement
+      if (downloadUrl) {
         const authToken = BackendService.getAuthToken();
         const headers: Record<string, string> = {};
         if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
 
-        await FileSystem.downloadAsync(assembleResult.signedDocumentUrl, fileUri, { headers });
+        await FileSystem.downloadAsync(downloadUrl, fileUri, { headers });
       } else if (document.uri) {
         const originalContent = await FileSystem.readAsStringAsync(document.uri, {
           encoding: FileSystem.EncodingType.Base64,
@@ -186,7 +209,7 @@ const SignConfirmationScreen = () => {
       if (isAvailable) {
         await Sharing.shareAsync(fileUri, {
           mimeType: 'application/pdf',
-          dialogTitle: `Open ${docName}`,
+          dialogTitle: `Open ${docFileName}`,
           UTI: 'com.adobe.pdf',
         });
       } else {
