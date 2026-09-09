@@ -13,7 +13,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.securesign.app",
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "deploymentTarget": "16.0",
+      "infoPlist": {
+        "NFCReaderUsageDescription": "SecureSign uses NFC to communicate with DSC smart card tokens for digital signing.",
+        "NSCameraUsageDescription": "SecureSign uses the camera to scan QR codes for document verification."
+      },
+      "entitlements": {
+        "com.apple.security.smartcard": true
+      }
     },
     "android": {
       "adaptiveIcon": {

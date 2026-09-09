@@ -8,6 +8,10 @@
       "android": {
         "buildType": "apk"
       },
+      "ios": {
+        "simulator": false,
+        "distribution": "internal"
+      },
       "env": {
         "EXPO_PUBLIC_BACKEND_URL": "https://hackthonapp-production.up.railway.app",
         "EXPO_PUBLIC_INSFORGE_URL": "https://vpgvqzpdvreylcujmmvu.supabase.co",
@@ -17,6 +21,9 @@
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "ios": {
+        "distribution": "store"
       },
       "env": {
         "EXPO_PUBLIC_BACKEND_URL": "https://hackthonapp-production.up.railway.app",
