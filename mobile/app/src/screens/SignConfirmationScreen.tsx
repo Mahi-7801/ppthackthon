@@ -35,6 +35,7 @@ const SignConfirmationScreen = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'confirm' | 'signing' | 'timestamping' | 'complete'>('confirm');
   const [signatureResult, setSignatureResult] = useState<any>(null);
+  const [selectedPosition, setSelectedPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'center'>('bottom-right');
 
   const handleSign = async () => {
     setLoading(true);
@@ -137,6 +138,7 @@ const SignConfirmationScreen = () => {
           fileBase64,
           documentName: document.name,
           documentHash,
+          signaturePosition: selectedPosition,
         }),
         BackendService.logAudit({
           eventType: 'document_signed',
@@ -244,6 +246,85 @@ const SignConfirmationScreen = () => {
                 {documentHash}
               </Text>
             </View>
+          </View>
+
+          {/* Interactive Document Preview & Signature Placement */}
+          <View style={styles.section}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <Text style={styles.sectionTitle}>✍️ Signature Placement</Text>
+              <Text style={{ fontSize: 12, color: '#007AFF', fontWeight: '700' }}>Live Interactive Preview</Text>
+            </View>
+
+            <Text style={{ fontSize: 13, color: '#64748B', marginBottom: 12 }}>
+              Choose where your digital stamp will appear on the document:
+            </Text>
+
+            {/* Position Picker Chips */}
+            <View style={styles.positionChipsContainer}>
+              <TouchableOpacity
+                style={[styles.positionChip, selectedPosition === 'bottom-right' && styles.positionChipActive]}
+                onPress={() => setSelectedPosition('bottom-right')}
+              >
+                <Text style={[styles.positionChipText, selectedPosition === 'bottom-right' && styles.positionChipTextActive]}>
+                  Bottom Right (Default)
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.positionChip, selectedPosition === 'bottom-left' && styles.positionChipActive]}
+                onPress={() => setSelectedPosition('bottom-left')}
+              >
+                <Text style={[styles.positionChipText, selectedPosition === 'bottom-left' && styles.positionChipTextActive]}>
+                  Bottom Left
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.positionChip, selectedPosition === 'top-right' && styles.positionChipActive]}
+                onPress={() => setSelectedPosition('top-right')}
+              >
+                <Text style={[styles.positionChipText, selectedPosition === 'top-right' && styles.positionChipTextActive]}>
+                  Top Right
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.positionChip, selectedPosition === 'center' && styles.positionChipActive]}
+                onPress={() => setSelectedPosition('center')}
+              >
+                <Text style={[styles.positionChipText, selectedPosition === 'center' && styles.positionChipTextActive]}>
+                  Center Approval
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Simulated Live Document Page Canvas */}
+            <View style={styles.docCanvas}>
+              {/* Document Header & Text lines simulation */}
+              <View style={styles.canvasHeaderLine} />
+              <View style={styles.canvasTextLine} />
+              <View style={[styles.canvasTextLine, { width: '80%' }]} />
+              <View style={[styles.canvasTextLine, { width: '92%' }]} />
+
+              {/* Dynamic Placed Signature Stamp Box */}
+              <View style={[
+                styles.placedStampBox,
+                selectedPosition === 'bottom-right' && styles.stampBottomRight,
+                selectedPosition === 'bottom-left' && styles.stampBottomLeft,
+                selectedPosition === 'top-right' && styles.stampTopRight,
+                selectedPosition === 'center' && styles.stampCenter,
+              ]}>
+                <View style={styles.stampHeader}>
+                  <Text style={styles.stampHeaderText}>DIGITALLY SIGNED</Text>
+                </View>
+                <Text style={styles.stampTextBold}>✍️ Officer Signature</Text>
+                <Text style={styles.stampTextSub}>DSC Class-3 Token</Text>
+                <Text style={styles.stampTextStatus}>✓ Timestamp Attached</Text>
+              </View>
+            </View>
+            <Text style={styles.placementHint}>
+              📍 Signature will be cryptographically stamped at: {selectedPosition.replace('-', ' ').toUpperCase()} on final page
+            </Text>
           </View>
 
           <View style={styles.section}>
@@ -540,6 +621,121 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     lineHeight: 18,
+  },
+  positionChipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 14,
+  },
+  positionChip: {
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#F8FAFC',
+  },
+  positionChipActive: {
+    borderColor: '#007AFF',
+    backgroundColor: '#EFF6FF',
+  },
+  positionChipText: {
+    fontSize: 11.5,
+    color: '#475569',
+    fontWeight: '500',
+  },
+  positionChipTextActive: {
+    color: '#007AFF',
+    fontWeight: '700',
+  },
+  docCanvas: {
+    height: 140,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    padding: 10,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  canvasHeaderLine: {
+    height: 5,
+    width: '35%',
+    backgroundColor: '#94A3B8',
+    borderRadius: 3,
+    marginBottom: 8,
+  },
+  canvasTextLine: {
+    height: 3.5,
+    width: '100%',
+    backgroundColor: '#E2E8F0',
+    borderRadius: 2,
+    marginBottom: 5,
+  },
+  placedStampBox: {
+    position: 'absolute',
+    width: 140,
+    padding: 6,
+    backgroundColor: '#F0F7FF',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  stampBottomRight: {
+    bottom: 8,
+    right: 8,
+  },
+  stampBottomLeft: {
+    bottom: 8,
+    left: 8,
+  },
+  stampTopRight: {
+    top: 8,
+    right: 8,
+  },
+  stampCenter: {
+    top: 38,
+    alignSelf: 'center',
+  },
+  stampHeader: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 1,
+    paddingHorizontal: 4,
+    borderRadius: 2,
+    alignSelf: 'flex-start',
+    marginBottom: 2,
+  },
+  stampHeaderText: {
+    color: '#FFFFFF',
+    fontSize: 6.5,
+    fontWeight: '700',
+  },
+  stampTextBold: {
+    fontSize: 8.5,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  stampTextSub: {
+    fontSize: 7,
+    color: '#64748B',
+  },
+  stampTextStatus: {
+    fontSize: 7,
+    color: '#16A34A',
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  placementHint: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });
 

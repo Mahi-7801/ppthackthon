@@ -323,6 +323,7 @@ class BackendService {
     fileBase64?: string;
     documentName?: string;
     documentHash?: string;
+    signaturePosition?: string;
   }): Promise<{ signedDocumentUrl: string }> {
     try {
       const res = await fetchWithTimeout(`${BACKEND_URL}/api/assemble-signature`, {
@@ -336,6 +337,7 @@ class BackendService {
           file_data: params.fileBase64,
           document_name: params.documentName,
           documentHash: params.documentHash,
+          signaturePosition: params.signaturePosition,
         }),
       });
       const data = await parseJsonSafe(res);

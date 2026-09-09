@@ -436,7 +436,7 @@ function drawOfficialEndorsementSheet(page, fontBold, fontRegular, { docName, ce
   });
 }
 
-async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate, hash }) {
+async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate, hash, signaturePosition }) {
   if (fileData && typeof fileData === 'string' && fileData.length > 20) {
     const buffer = Buffer.from(fileData, 'base64');
     const isPdf = buffer.length > 4 && buffer.slice(0, 4).toString() === '%PDF';
@@ -470,6 +470,83 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
             color: rgb(0.1, 0.3, 0.6),
           }
         );
+      });
+
+      // Draw visible signature stamp at officer's selected location on the last page of user's document
+      const lastPage = pages[pages.length - 1];
+      const { width: pWidth, height: pHeight } = lastPage.getSize();
+      const boxW = 195;
+      const boxH = 65;
+      let boxX = pWidth - boxW - 35; // Default bottom-right
+      let boxY = 35;
+
+      if (signaturePosition === 'bottom-left') {
+        boxX = 35;
+        boxY = 35;
+      } else if (signaturePosition === 'top-right') {
+        boxX = pWidth - boxW - 35;
+        boxY = pHeight - boxH - 40;
+      } else if (signaturePosition === 'center') {
+        boxX = (pWidth - boxW) / 2;
+        boxY = 100;
+      }
+
+      lastPage.drawRectangle({
+        x: boxX,
+        y: boxY,
+        width: boxW,
+        height: boxH,
+        color: rgb(0.96, 0.98, 1.0),
+        borderColor: rgb(0.06, 0.47, 0.8),
+        borderWidth: 1.2,
+      });
+
+      lastPage.drawRectangle({
+        x: boxX,
+        y: boxY + boxH - 16,
+        width: boxW,
+        height: 16,
+        color: rgb(0.06, 0.47, 0.8),
+      });
+
+      lastPage.drawText('DIGITALLY SIGNED -- SECURESIGN', {
+        x: boxX + 8,
+        y: boxY + boxH - 12,
+        size: 7.5,
+        font: fontBold,
+        color: rgb(1, 1, 1),
+      });
+
+      lastPage.drawText('Signer: Class 3 Hardware DSC Token', {
+        x: boxX + 8,
+        y: boxY + boxH - 28,
+        size: 7,
+        font: fontBold,
+        color: rgb(0.1, 0.2, 0.4),
+      });
+
+      lastPage.drawText(`Timestamp: ${(signDate || '').slice(0, 19).replace('T', ' ')} IST`, {
+        x: boxX + 8,
+        y: boxY + boxH - 40,
+        size: 6.5,
+        font: fontRegular,
+        color: rgb(0.2, 0.2, 0.3),
+      });
+
+      lastPage.drawText(`Cert: ${(certSerial || '').slice(0, 20)}...`, {
+        x: boxX + 8,
+        y: boxY + boxH - 51,
+        size: 6.5,
+        font: fontRegular,
+        color: rgb(0.2, 0.2, 0.3),
+      });
+
+      lastPage.drawText('Status: VERIFIED & TAMPER-EVIDENT', {
+        x: boxX + 8,
+        y: boxY + boxH - 61,
+        size: 6.5,
+        font: fontBold,
+        color: rgb(0.05, 0.55, 0.2),
       });
 
       const certPage = pdfDoc.addPage([612, 792]);
@@ -595,7 +672,7 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
 
 // ── Assemble PAdES Signature ──
 app.post('/api/assemble-signature', requireAuth, async (req, res) => {
-  const { documentId, signature, timestamp, certificateSerial, file_data, document_name, documentHash } = req.body;
+  const { documentId, signature, timestamp, certificateSerial, file_data, document_name, documentHash, signaturePosition } = req.body;
   if (!documentId || !signature || !timestamp) {
     return res.status(400).json({ error: 'documentId, signature, and timestamp required' });
   }
@@ -645,6 +722,7 @@ app.post('/api/assemble-signature', requireAuth, async (req, res) => {
       certSerial,
       signDate,
       hash,
+      signaturePosition,
     });
 
     signedPdfsStore.set(cleanDocId, pdfBuffer);
