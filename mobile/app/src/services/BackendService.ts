@@ -324,6 +324,10 @@ class BackendService {
     documentName?: string;
     documentHash?: string;
     signaturePosition?: string;
+    signatureCoordX?: number;
+    signatureCoordY?: number;
+    signerName?: string;
+    signerOrg?: string;
   }): Promise<{ signedDocumentUrl: string }> {
     try {
       const res = await fetchWithTimeout(`${BACKEND_URL}/api/assemble-signature`, {
@@ -338,6 +342,10 @@ class BackendService {
           document_name: params.documentName,
           documentHash: params.documentHash,
           signaturePosition: params.signaturePosition,
+          signatureCoordX: params.signatureCoordX,
+          signatureCoordY: params.signatureCoordY,
+          signerName: params.signerName,
+          signerOrg: params.signerOrg,
         }),
       });
       const data = await parseJsonSafe(res);

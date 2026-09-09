@@ -436,7 +436,7 @@ function drawOfficialEndorsementSheet(page, fontBold, fontRegular, { docName, ce
   });
 }
 
-async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate, hash, signaturePosition }) {
+async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate, hash, signaturePosition, signatureCoordX, signatureCoordY, signerName, signerOrg }) {
   if (fileData && typeof fileData === 'string' && fileData.length > 20) {
     const buffer = Buffer.from(fileData, 'base64');
     const isPdf = buffer.length > 4 && buffer.slice(0, 4).toString() === '%PDF';
@@ -475,12 +475,17 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
       // Draw visible signature stamp at officer's selected location on the last page of user's document
       const lastPage = pages[pages.length - 1];
       const { width: pWidth, height: pHeight } = lastPage.getSize();
-      const boxW = 195;
-      const boxH = 65;
+      const boxW = 210;
+      const boxH = 72;
       let boxX = pWidth - boxW - 35; // Default bottom-right
       let boxY = 35;
 
-      if (signaturePosition === 'bottom-left') {
+      if (signatureCoordX !== undefined && signatureCoordY !== undefined && !isNaN(Number(signatureCoordX)) && !isNaN(Number(signatureCoordY))) {
+        const pctX = Math.max(5, Math.min(95, Number(signatureCoordX))) / 100;
+        const pctY = Math.max(5, Math.min(95, Number(signatureCoordY))) / 100;
+        boxX = Math.max(20, Math.min(pWidth - boxW - 20, (pWidth * pctX) - (boxW / 2)));
+        boxY = Math.max(25, Math.min(pHeight - boxH - 25, pHeight - (pHeight * pctY) - (boxH / 2)));
+      } else if (signaturePosition === 'bottom-left') {
         boxX = 35;
         boxY = 35;
       } else if (signaturePosition === 'top-right') {
@@ -490,6 +495,9 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
         boxX = (pWidth - boxW) / 2;
         boxY = 100;
       }
+
+      const displayName = signerName || 'Ramesh Kumar';
+      const displayOrg = signerOrg || 'ABC Technologies Pvt. Ltd.';
 
       lastPage.drawRectangle({
         x: boxX,
@@ -517,34 +525,42 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
         color: rgb(1, 1, 1),
       });
 
-      lastPage.drawText('Signer: Class 3 Hardware DSC Token', {
+      lastPage.drawText(`Digitally signed by ${displayName}`, {
         x: boxX + 8,
-        y: boxY + boxH - 28,
+        y: boxY + boxH - 27,
         size: 7,
         font: fontBold,
         color: rgb(0.1, 0.2, 0.4),
       });
 
-      lastPage.drawText(`Timestamp: ${(signDate || '').slice(0, 19).replace('T', ' ')} IST`, {
+      lastPage.drawText(`CN=${displayName}, O=${displayOrg}`, {
         x: boxX + 8,
-        y: boxY + boxH - 40,
-        size: 6.5,
+        y: boxY + boxH - 38,
+        size: 6.2,
         font: fontRegular,
         color: rgb(0.2, 0.2, 0.3),
       });
 
-      lastPage.drawText(`Cert: ${(certSerial || '').slice(0, 20)}...`, {
+      lastPage.drawText(`Date: ${(signDate || '').slice(0, 19).replace('T', ' ')} IST`, {
         x: boxX + 8,
-        y: boxY + boxH - 51,
-        size: 6.5,
+        y: boxY + boxH - 48,
+        size: 6.2,
+        font: fontRegular,
+        color: rgb(0.2, 0.2, 0.3),
+      });
+
+      lastPage.drawText(`Token: Class 3 DSC | Cert: ${(certSerial || '').slice(0, 14)}...`, {
+        x: boxX + 8,
+        y: boxY + boxH - 58,
+        size: 6.2,
         font: fontRegular,
         color: rgb(0.2, 0.2, 0.3),
       });
 
       lastPage.drawText('Status: VERIFIED & TAMPER-EVIDENT', {
         x: boxX + 8,
-        y: boxY + boxH - 61,
-        size: 6.5,
+        y: boxY + boxH - 68,
+        size: 6.2,
         font: fontBold,
         color: rgb(0.05, 0.55, 0.2),
       });
@@ -672,7 +688,7 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
 
 // ── Assemble PAdES Signature ──
 app.post('/api/assemble-signature', requireAuth, async (req, res) => {
-  const { documentId, signature, timestamp, certificateSerial, file_data, document_name, documentHash, signaturePosition } = req.body;
+  const { documentId, signature, timestamp, certificateSerial, file_data, document_name, documentHash, signaturePosition, signatureCoordX, signatureCoordY, signerName, signerOrg } = req.body;
   if (!documentId || !signature || !timestamp) {
     return res.status(400).json({ error: 'documentId, signature, and timestamp required' });
   }
@@ -723,6 +739,10 @@ app.post('/api/assemble-signature', requireAuth, async (req, res) => {
       signDate,
       hash,
       signaturePosition,
+      signatureCoordX,
+      signatureCoordY,
+      signerName,
+      signerOrg,
     });
 
     signedPdfsStore.set(cleanDocId, pdfBuffer);
