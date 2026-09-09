@@ -309,25 +309,25 @@ function drawOfficialEndorsementSheet(page, fontBold, fontRegular, { docName, ce
     color: rgb(0.06, 0.47, 0.8),
   });
 
-  page.drawText('GOVERNMENT OF ANDHRA PRADESH', {
-    x: 155,
+  page.drawText('SECURESIGN -- DIGITAL SIGNATURE VERIFICATION RECORD', {
+    x: 75,
     y: height - 55,
-    size: 15,
+    size: 13,
     font: fontBold,
     color: rgb(1, 1, 1),
   });
 
-  page.drawText('OFFICIAL DIGITAL SIGNATURE ENDORSEMENT CERTIFICATE (CCA CLASS-3)', {
-    x: 75,
-    y: height - 78,
-    size: 10,
-    font: fontBold,
+  page.drawText('Cryptographically signed using a Class 3 DSC hardware token.', {
+    x: 135,
+    y: height - 76,
+    size: 9.5,
+    font: fontRegular,
     color: rgb(0.9, 0.95, 1.0),
   });
 
   let currentY = height - 130;
 
-  page.drawText('SECURESIGN CRYPTOGRAPHIC VERIFICATION RECORD', {
+  page.drawText('DOCUMENT & SIGNATURE VERIFICATION DETAILS', {
     x: 50,
     y: currentY,
     size: 11,
@@ -337,7 +337,7 @@ function drawOfficialEndorsementSheet(page, fontBold, fontRegular, { docName, ce
 
   currentY -= 20;
 
-  const metaBoxHeight = 220;
+  const metaBoxHeight = 200;
   page.drawRectangle({
     x: 50,
     y: currentY - metaBoxHeight,
@@ -350,12 +350,11 @@ function drawOfficialEndorsementSheet(page, fontBold, fontRegular, { docName, ce
 
   const rowLabels = [
     { label: 'Document Name:', val: docName || 'Untitled_Document' },
-    { label: 'Signing Timestamp:', val: `${signDate} (RFC 3161 TSA Sealed)` },
-    { label: 'Signer Certificate Serial:', val: certSerial || 'FIPS140_2_LEVEL3_CCA_VERIFIED' },
-    { label: 'Cryptographic Hardware:', val: 'FIPS 140-2 Level 3 Hardware DSC Token (ePass2003 / mToken)' },
-    { label: 'Signature Format:', val: 'PAdES-B-LT (ISO 32000-1 / ETSI TS 102 778 Compliant)' },
-    { label: 'Original SHA-256 Digest:', val: hash ? (hash.length > 50 ? hash.slice(0, 48) + '...' : hash) : 'Verified SHA-256' },
-    { label: 'Total Certified Pages:', val: `${totalPages} page(s) cryptographically bound` },
+    { label: 'Signing Timestamp:', val: signDate || new Date().toISOString() },
+    { label: 'Certificate Serial:', val: certSerial || 'CCA_CLASS3_TOKEN_VERIFIED' },
+    { label: 'Signing Device:', val: 'Class 3 Hardware DSC Token (Direct Type-C / OTG)' },
+    { label: 'Cryptographic Digest:', val: hash ? (hash.length > 50 ? hash.slice(0, 48) + '...' : hash) : 'SHA-256 Verified' },
+    { label: 'Document Scope:', val: `${totalPages} page(s) cryptographically bound` },
   ];
 
   let rowY = currentY - 26;
@@ -368,18 +367,18 @@ function drawOfficialEndorsementSheet(page, fontBold, fontRegular, { docName, ce
       color: rgb(0.15, 0.25, 0.4),
     });
     page.drawText(String(item.val), {
-      x: 230,
+      x: 215,
       y: rowY,
       size: 8.5,
       font: fontRegular,
       color: rgb(0.1, 0.1, 0.15),
     });
-    rowY -= 28;
+    rowY -= 30;
   }
 
   currentY = currentY - metaBoxHeight - 30;
 
-  const sealBoxHeight = 160;
+  const sealBoxHeight = 165;
   page.drawRectangle({
     x: 50,
     y: currentY - sealBoxHeight,
@@ -398,8 +397,8 @@ function drawOfficialEndorsementSheet(page, fontBold, fontRegular, { docName, ce
     color: rgb(0.1, 0.65, 0.3),
   });
 
-  page.drawText('AUTHENTICATED LEGAL VALIDITY CONFIRMATION (IT ACT 2000 SECTION 3A)', {
-    x: 68,
+  page.drawText('SIGNATURE INTEGRITY & VERIFICATION RECORD', {
+    x: 135,
     y: currentY - 20,
     size: 9.5,
     font: fontBold,
@@ -407,13 +406,12 @@ function drawOfficialEndorsementSheet(page, fontBold, fontRegular, { docName, ce
   });
 
   const legalTexts = [
-    '1. Hardware Security: The private cryptographic key remained strictly sealed within the FIPS 140-2',
-    '   Level 3 hardware secure element during signature computation and was never exported.',
-    '2. Legal Admissibility: This digital signature carries full legal recognition under Section 3A & Section 5',
-    '   of the Indian Information Technology Act, 2000 and is legally equivalent to handwritten ink signatures.',
-    '3. Integrity & Tamper Evident: Any alteration to this document after the recorded timestamp invalidates',
-    '   the cryptographic seal immediately upon inspection by PDF verification authorities.',
-    '4. Status: CCA CLASS-3 HARDWARE TOKEN SIGNED -- VERIFIED & VALID',
+    '1. Hardware Security: Cryptographically signed using a Class 3 DSC hardware token via secure mobile interface.',
+    '2. Key Protection: Private cryptographic signing keys remain secured inside the hardware token cryptographic chip.',
+    '3. Tamper Evident: Cryptographic hashing ensures any alteration to this document after the recorded timestamp is detectable.',
+    '4. Independent Verification: Signature integrity and certificate status can be independently verified using a compatible',
+    '   PDF signature validation application.',
+    '5. Verification Status: CLASS 3 DSC HARDWARE TOKEN SIGNED -- VERIFIED',
   ];
 
   let legalY = currentY - 50;
@@ -422,18 +420,19 @@ function drawOfficialEndorsementSheet(page, fontBold, fontRegular, { docName, ce
       x: 65,
       y: legalY,
       size: 7.8,
-      font: line.startsWith('4. Status') ? fontBold : fontRegular,
-      color: line.startsWith('4. Status') ? rgb(0.05, 0.5, 0.2) : rgb(0.15, 0.2, 0.2),
+      font: line.startsWith('5. Verification Status') ? fontBold : fontRegular,
+      color: line.startsWith('5. Verification Status') ? rgb(0.05, 0.5, 0.2) : rgb(0.15, 0.2, 0.2),
     });
-    legalY -= 15;
+    legalY -= 16;
   }
 
-  page.drawText('SecureSign AP e-Governance Authority * Government of Andhra Pradesh * Digital India Initiative', {
-    x: 100,
+  // Disclaimer / Footer bar
+  page.drawText('Demo / Technical Verification Record -- Not a Government Certificate | SecureSign Hackathon Prototype', {
+    x: 80,
     y: 38,
     size: 7.5,
     font: fontRegular,
-    color: rgb(0.4, 0.45, 0.5),
+    color: rgb(0.45, 0.5, 0.55),
   });
 }
 
@@ -462,7 +461,7 @@ async function generateSignedPdfBuffer({ docName, fileData, certSerial, signDate
           borderWidth: 0.5,
         });
         page.drawText(
-          `SECURESIGN VERIFIED (CCA CLASS-3) | Page ${idx + 1} of ${pages.length} | Token: DSC FIPS 140-2 L3 | Cert: ${(certSerial || '').slice(0, 20)}... | IT Act 2000 §3A Valid`,
+          `SECURESIGN VERIFICATION | Page ${idx + 1} of ${pages.length} | Class 3 DSC Token | Cert: ${(certSerial || '').slice(0, 18)}... | Demo Verification Record`,
           {
             x: 26,
             y: 15,
